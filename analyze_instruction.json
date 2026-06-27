@@ -1,0 +1,38 @@
+{
+  "student": {
+    "name": "MUHAMMADAKRAMS",
+    "id": "257406833",
+    "class": "12",
+    "section": ""
+  },
+  "exam_name": "JEE-MAIN WTM",
+  "output": {
+    "format": "matplotlib",
+    "overall_report": false,
+    "class_avg_comparison": false,
+    "trend_line": true
+  },
+  "data_types": [
+    {
+      "name": "chemistry_marks",
+      "enabled": true,
+      "chart": "line"
+    },
+    {
+      "name": "maths_marks",
+      "enabled": true,
+      "chart": "line"
+    },
+    {
+      "name": "physics_marks",
+      "enabled": true,
+      "chart": "line"
+    },
+    {
+      "name": "total_marks",
+      "enabled": true,
+      "chart": "line"
+    }
+  ],
+  "extra_description": ""
+}

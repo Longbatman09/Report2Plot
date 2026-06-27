@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Analytics Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9f9f9;
+            --bg-tertiary: #f3f3f3;
+            --text-primary: #000000;
+            --text-secondary: #404040;
+            --text-tertiary: #707070;
+            --border-color: #e0e0e0;
+            --accent-dark: #000000;
+            --accent-light: #f0f0f0;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .wizard-container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            background: var(--bg-primary);
+        }
+
+        .wizard-sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 3rem 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .wizard-header {
+            padding: 0 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .wizard-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .wizard-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            line-height: 1.4;
+        }
+
+        .wizard-steps {
+            flex: 1;
+            padding: 0 1rem;
+        }
+
+        .step-item {
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+            color: var(--text-tertiary);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .step-item:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+
+        .step-item.active {
+            background: var(--accent-light);
+            color: var(--text-primary);
+            border-left-color: var(--accent-dark);
+            font-weight: 600;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .step-item.active .step-number {
+            background: var(--accent-dark);
+            color: var(--bg-primary);
+        }
+
+        .wizard-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .wizard-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .wizard-page {
+            opacity: 0;
+            transform: translateX(30px);
+            pointer-events: none;
+            transition: var(--transition);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .wizard-page.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+            position: relative;
+            width: auto;
+            height: auto;
+        }
+
+        .page-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.7px;
+        }
+
+        .page-description {
+            font-size: 1rem;
+            color: var(--text-tertiary);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-dark);
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-badge {
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .file-badge:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-dark);
+        }
+
+        .file-icon {
+            font-size: 1.25rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 28px;
+            margin-left: 1rem;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--border-color);
+            border-radius: 34px;
+            transition: var(--transition);
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--bg-primary);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--accent-dark);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        .option-info h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .option-info p {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            font-size: 0.95rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .radio-label:hover {
+            background: var(--bg-secondary);
+        }
+
+        .radio-label input {
+            margin: 0;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-dark);
+        }
+
+        .wizard-footer {
+            padding: 2rem 3rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-secondary);
+        }
+
+        .btn {
+            padding: 0.85rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--accent-dark);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: rgba(0, 0, 0, 0.85);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--bg-secondary);
+            border-color: var(--accent-dark);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 3px;
+            background: var(--border-color);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-dark);
+            transition: width 0.4s ease;
+        }
+
+        .hidden-page {
+            display: none;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 550px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.3s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-dark);
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .modal-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-tertiary);
+            margin-bottom: 1.5rem;
+        }
+
+        .result-list {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 1rem 0;
+        }
+
+        .result-item {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .wizard-sidebar {
+                width: 240px;
+                padding: 2rem 0;
+            }
+
+            .wizard-content {
+                padding: 2rem;
+            }
+
+            .wizard-footer {
+                padding: 1.5rem 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .wizard-container {
+                flex-direction: column;
+            }
+
+            .wizard-sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1.5rem;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 2rem;
+                max-height: 100px;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .wizard-header {
+                padding: 0;
+                margin-bottom: 0;
+                flex-shrink: 0;
+            }
+
+            .wizard-title {
+                font-size: 1.25rem;
+            }
+
+            .wizard-subtitle {
+                display: none;
+            }
+
+            .wizard-steps {
+                flex: 1;
+                padding: 0;
+                display: flex;
+                gap: 0;
+                overflow-x: auto;
+            }
+
+            .step-item {
+                margin-bottom: 0;
+                white-space: nowrap;
+                padding: 0.75rem 1rem;
+            }
+
+            .wizard-content {
+                padding: 2rem 1.5rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .files-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wizard-container">
+        <!-- Sidebar -->
+        <div class="wizard-sidebar">
+            <div class="wizard-header">
+                <h1 class="wizard-title">Analytics</h1>
+                <p class="wizard-subtitle">Step-by-step report setup</p>
+            </div>
+
+            <div class="wizard-steps">
+                <div class="step-item active" data-step="0">
+                    <span class="step-number">1</span> Files & Context
+                </div>
+                <div class="step-item" data-step="1">
+                    <span class="step-number">2</span> Student Info
+                </div>
+                <div class="step-item" data-step="2">
+                    <span class="step-number">3</span> Data Fields
+                </div>
+                <div class="step-item" data-step="3">
+                    <span class="step-number">4</span> Output Settings
+                </div>
+                <div class="step-item" data-step="4">
+                    <span class="step-number">5</span> Review & Run
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="wizard-main">
+            <div class="wizard-content">
+                <!-- Step 0: Files & Context -->
+                <div class="wizard-page active" data-page="0">
+                    <h1 class="page-title">Select Reports</h1>
+                    <p class="page-description">Verify the input files and exam name for analysis</p>
+
+                    <div class="form-group">
+                        <label>Available Reports</label>
+                        <div id="files-container" class="files-grid">
+                            <div class="file-badge">
+                                <span class="file-icon">📄</span> Checking files...
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="scanFilesNow()">
+                            Scan Files
+                        </button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exam_name">Exam / Assignment Group</label>
+                        <input type="text" id="exam_name" placeholder="e.g. JEE Main WTM 29" required>
+                    </div>
+                </div>
+
+                <!-- Step 1: Student Info -->
+                <div class="wizard-page" data-page="1">
+                    <h1 class="page-title">Student Identity</h1>
+                    <p class="page-description">Enter the student's basic information</p>
+
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label for="student_name">Full Name</label>
+                            <input type="text" id="student_name" placeholder="e.g. John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_id">Student ID</label>
+                            <input type="text" id="student_id" placeholder="e.g. 22CS104" required>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="form-group">
+                            <label for="student_class">Class</label>
+                            <input type="text" id="student_class" placeholder="e.g. 12-A" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_section">Section / Stream</label>
+                            <input type="text" id="student_section" placeholder="e.g. Science">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Data Fields -->
+                <div class="wizard-page" data-page="2">
+                    <h1 class="page-title">Data Fields</h1>
+                    <p class="page-description">Configure which subjects and fields to analyze</p>
+
+                    <div id="data-fields-container">
+                        <p style="color: var(--text-tertiary); text-align: center; padding: 2rem;">
+                            Return to Step 1 and scan files to auto-detect fields
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 3: Output Settings -->
+                <div class="wizard-page" data-page="3">
+                    <h1 class="page-title">Output & Analytics</h1>
+                    <p class="page-description">Choose output format and analysis options</p>
+
+                    <div class="form-group">
+                        <label>Output Format</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="output_format" value="pptx" checked>
+                                PowerPoint Presentation
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="output_format" value="both">
+                                PowerPoint + Charts
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="output_format" value="matplotlib">
+                                Charts Only
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Analysis Options</label>
+                        <div class="option-row">
+                            <div class="option-info">
+                                <h3>Overall Summary</h3>
+                                <p>Combine all subjects on one chart</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="option_overall" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="option-row">
+                            <div class="option-info">
+                                <h3>Class Comparison</h3>
+                                <p>Compare to class averages</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="option_class_avg" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="option-row">
+                            <div class="option-info">
+                                <h3>Trend Line</h3>
+                                <p>Show performance trajectory</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="option_trend" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="extra_description">Additional Notes</label>
+                        <textarea id="extra_description" placeholder="Add focus areas or special notes for the analysis..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Step 4: Review & Run -->
+                <div class="wizard-page" data-page="4">
+                    <h1 class="page-title">Ready to Analyze</h1>
+                    <p class="page-description">Review your settings and run the analysis</p>
+
+                    <div id="review-summary" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+                        <p style="color: var(--text-tertiary); text-align: center;">Loading summary...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="wizard-footer">
+                <button class="btn btn-secondary" id="prev-btn" onclick="previousStep()" style="display: none;">
+                    Previous
+                </button>
+                <div class="progress-bar" style="flex: 1; margin: 0 2rem;">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <button class="btn btn-primary" id="next-btn" onclick="nextStep()">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Processing Modal -->
+    <div class="modal-overlay" id="processing-modal">
+        <div class="modal-box">
+            <div class="spinner"></div>
+            <h2 class="modal-title" id="modal-title">Analyzing Reports</h2>
+            <p class="modal-subtitle" id="modal-status">Processing documents...</p>
+            
+            <div id="results-container" style="display: none;">
+                <p style="font-weight: 600; margin-bottom: 1rem;">Generated Deliverables:</p>
+                <div class="result-list" id="results-list"></div>
+            </div>
+
+            <div style="margin-top: 2rem; display: none;" id="modal-actions">
+                <button class="btn btn-primary" onclick="closeModal()">Complete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 0;
+        const totalSteps = 5;
+        let formData = {};
+        let commonStudents = [];
+
+        function updateProgress() {
+            const progress = ((currentStep + 1) / totalSteps) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        function showStep(step) {
+            // Hide all pages
+            document.querySelectorAll('.wizard-page').forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Show current page
+            document.querySelector(`[data-page="${step}"]`).classList.add('active');
+
+            // Update sidebar
+            document.querySelectorAll('.step-item').forEach((item, idx) => {
+                if (idx === step) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Update buttons
+            document.getElementById('prev-btn').style.display = step > 0 ? 'block' : 'none';
+            const nextBtn = document.getElementById('next-btn');
+            if (step === totalSteps - 1) {
+                nextBtn.textContent = 'Run Analysis';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+
+            // Special handling for review step
+            if (step === 4) {
+                updateReviewSummary();
+            }
+
+            updateProgress();
+        }
+
+        function nextStep() {
+            if (currentStep < totalSteps - 1) {
+                currentStep++;
+                showStep(currentStep);
+            } else {
+                runAnalysis();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function updateReviewSummary() {
+            const summary = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Exam Group</p>
+                        <p style="font-weight: 600;">${document.getElementById('exam_name').value || '-'}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Student</p>
+                        <p style="font-weight: 600;">${document.getElementById('student_name').value || '-'}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">ID</p>
+                        <p style="font-weight: 600;">${document.getElementById('student_id').value || '-'}</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Output</p>
+                        <p style="font-weight: 600;">${document.querySelector('input[name="output_format"]:checked').value.toUpperCase()}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('review-summary').innerHTML = summary;
+        }
+
+        async function scanFilesNow() {
+            const btn = event.target;
+            btn.textContent = 'Scanning...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/scan');
+                const data = await res.json();
+
+                if (data.common_fields) {
+                    const container = document.getElementById('data-fields-container');
+                    container.innerHTML = '';
+                    data.common_fields.forEach(field => {
+                        const row = document.createElement('div');
+                        row.className = 'option-row';
+                        row.innerHTML = `
+                            <div class="option-info">
+                                <h3>${field}</h3>
+                                <p>Enable for analysis</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" data-field="${field}" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        `;
+                        container.appendChild(row);
+                    });
+                }
+
+                if (data.student) {
+                    if (data.student.id) document.getElementById('student_id').value = data.student.id;
+                    if (data.student.class) document.getElementById('student_class').value = data.student.class;
+                    if (data.student.section) document.getElementById('student_section').value = data.student.section;
+                }
+
+                if (data.exam_name) {
+                    document.getElementById('exam_name').value = data.exam_name;
+                }
+
+                alert('Files scanned successfully. Auto-fill complete.');
+            } catch (err) {
+                alert('Error scanning files: ' + err.message);
+            } finally {
+                btn.textContent = 'Scan Files';
+                btn.disabled = false;
+            }
+        }
+
+        async function runAnalysis() {
+            const payload = {
+                student: {
+                    name: document.getElementById('student_name').value,
+                    id: document.getElementById('student_id').value,
+                    class: document.getElementById('student_class').value,
+                    section: document.getElementById('student_section').value,
+                },
+                exam_name: document.getElementById('exam_name').value,
+                output: {
+                    format: document.querySelector('input[name="output_format"]:checked').value,
+                    overall_report: document.getElementById('option_overall').checked,
+                    class_avg_comparison: document.getElementById('option_class_avg').checked,
+                    trend_line: document.getElementById('option_trend').checked,
+                },
+                extra_description: document.getElementById('extra_description').value,
+            };
+
+            document.getElementById('processing-modal').classList.add('active');
+            document.getElementById('modal-title').textContent = 'Analyzing Reports';
+            document.getElementById('modal-status').textContent = 'Processing documents and generating outputs...';
+
+            try {
+                const res = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!res.ok) throw new Error('Analysis failed');
+                const result = await res.json();
+
+                document.getElementById('modal-title').textContent = 'Analysis Complete';
+                document.getElementById('modal-status').textContent = 'Your reports have been generated successfully.';
+                document.getElementById('results-container').style.display = 'block';
+                document.getElementById('results-list').innerHTML = (result.outputs || []).map(o => `
+                    <div class="result-item">${o}</div>
+                `).join('');
+                document.getElementById('modal-actions').style.display = 'block';
+            } catch (err) {
+                document.getElementById('modal-title').textContent = 'Error';
+                document.getElementById('modal-status').textContent = err.message;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('processing-modal').classList.remove('active');
+            location.reload();
+        }
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            updateProgress();
+            
+            // Load input files
+            fetch('/api/inputs').then(r => r.json()).then(data => {
+                if (data.files) {
+                    document.getElementById('files-container').innerHTML = data.files.map(f => `
+                        <div class="file-badge">
+                            <span class="file-icon">📄</span> ${f}
+                        </div>
+                    `).join('');
+                }
+            });
+
+            // Heartbeat
+            const clientId = Math.random().toString(36).substring(2);
+            function sendHeartbeat() {
+                fetch(`/api/heartbeat?client_id=${clientId}`).catch(() => {});
+            }
+            sendHeartbeat();
+            setInterval(sendHeartbeat, 2000);
+            window.addEventListener('beforeunload', () => {
+                if (navigator.sendBeacon) navigator.sendBeacon(`/api/heartbeat?client_id=${clientId}&closing=true`);
+            });
+        });
+
+        // Step navigation via sidebar
+        document.querySelectorAll('.step-item').forEach((item, idx) => {
+            item.addEventListener('click', () => {
+                currentStep = idx;
+                showStep(currentStep);
+            });
+        });
+    </script>
+</body>
+</html>
