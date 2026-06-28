@@ -386,58 +386,23 @@
                 `;
 
                 data.assignments.forEach(item => {
+                    const primaryExam = item.exam_names[0] || '';
                     html += `
-                        <div class="history-item" onclick="toggleDetails(this)">
+                        <div class="history-item" onclick="location.href='exam_detail_page.html?exam_name=${encodeURIComponent(primaryExam)}'">
                             <div class="item-header">
                                 <div>
                                     <div class="item-title">${item.display_name}</div>
                                     <div style="margin-top: 0.5rem;">
                                         ${(item.exam_names || []).map(n => `<span class="item-badge">${n}</span>`).join('')}
                                         <span class="item-badge">${item.file_count} file${item.file_count === 1 ? '' : 's'}</span>
+                                        <span class="item-badge">${item.students.length} student${item.students.length === 1 ? '' : 's'}</span>
                                     </div>
                                 </div>
-                                <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                                <div style="display: flex; align-items: center; gap: 1rem;">
                                     <div class="item-meta">
                                         <span>${formatDate(item.updated_at)}</span>
                                     </div>
-                                    <div class="chevron">▼</div>
-                                </div>
-                            </div>
-
-                            <div class="item-details">
-                                <div class="detail-block">
-                                    <h4>Processed Files</h4>
-                                    <p>${item.files.length ? item.files.join(', ') : 'N/A'}</p>
-                                </div>
-                                <div class="detail-block">
-                                    <h4>Students</h4>
-                                    <p>${item.students.length || 'None'}</p>
-                                </div>
-                            </div>
-
-                            <div class="expandable-panel">
-                                ${item.students.length ? `
-                                    <div style="margin-bottom: 1.5rem;">
-                                        <h4 style="font-size: 0.8rem; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 0.75rem; letter-spacing: 0.5px;">Students in Group</h4>
-                                        <div class="student-list">
-                                            ${item.students.map(s => `
-                                                <div class="student-item">
-                                                    <div>
-                                                        <strong>${s.name || 'Unknown'}</strong>
-                                                        ${s.id ? `<span style="color: var(--text-tertiary); margin-left: 0.5rem;">(${s.id})</span>` : ''}
-                                                    </div>
-                                                    <a href="description_page.html?exam_name=${encodeURIComponent(item.exam_names[0] || '')}&student_id=${encodeURIComponent(s.id || '')}" class="btn btn-secondary" onclick="event.stopPropagation();">
-                                                        Add Series
-                                                    </a>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                    </div>
-                                ` : ''}
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <a href="description_page.html?exam_name=${encodeURIComponent(item.exam_names[0] || '')}" class="btn btn-secondary" onclick="event.stopPropagation();">
-                                        Load Group
-                                    </a>
+                                    <div style="font-size: 1.1rem; color: var(--text-tertiary);">→</div>
                                 </div>
                             </div>
                         </div>

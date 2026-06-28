@@ -575,6 +575,27 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        .intro-slide {
+            animation: introFadeIn 0.4s ease;
+        }
+        @keyframes introFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .intro-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-dark);
+            opacity: 0.3;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .intro-dot.active {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -684,7 +705,7 @@
                             </label>
                             <label class="radio-label">
                                 <input type="radio" name="output_format" value="matplotlib">
-                                Charts Only
+                                Matplotlib Charts Only
                             </label>
                         </div>
                     </div>
@@ -771,12 +792,65 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="intro-modal">
+        <div class="modal-box" style="width: 100vw; height: 100vh; max-width: none; border: none; border-radius: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 3rem; box-shadow: none;">
+            <div style="width: 100%; max-width: 580px; display: flex; flex-direction: column; height: auto;">
+                <!-- Slides Container -->
+                <div id="intro-slides">
+                    <!-- Slide 1 -->
+                    <div class="intro-slide active" data-slide="0" style="text-align: center;">
+                        <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">📊</div>
+                        <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Welcome to Report2Plot</h2>
+                        <p style="color: var(--text-secondary); font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                            An automated academic analytics platform. Converted report files are cached locally, student score records are extracted using Gemini, and styled PowerPoint slide decks and Matplotlib charts are rendered instantly.
+                        </p>
+                    </div>
+                    <!-- Slide 2 -->
+                    <div class="intro-slide" data-slide="1" style="display: none;">
+                        <div style="font-size: 3.5rem; text-align: center; margin-bottom: 1.5rem;">⚙️</div>
+                        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); text-align: center;">How it works</h2>
+                        <div style="margin: 1.5rem 0; font-size: 1.05rem; color: var(--text-secondary); line-height: 2.0;">
+                            <p style="margin-bottom: 0.85rem;"><strong>1. Place Files:</strong> Put your PDF/image report cards in the <code>input/</code> directory.</p>
+                            <p style="margin-bottom: 0.85rem;"><strong>2. Scan Input:</strong> Click <strong>Analyze Files</strong> in Step 1 to auto-detect subjects and class list registries.</p>
+                            <p style="margin-bottom: 0.85rem;"><strong>3. Configure & Run:</strong> Select student name, choose fields, choose output format, and run the pipeline!</p>
+                        </div>
+                    </div>
+                    <!-- Slide 3 -->
+                    <div class="intro-slide" data-slide="2" style="display: none; text-align: center;">
+                        <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">🚀</div>
+                        <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Ready to begin!</h2>
+                        <p style="color: var(--text-secondary); font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                            Everything is pre-configured and ready. Let's make educational statistics effortless and professional!
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Carousel Dot Indicators -->
+                <div style="display: flex; justify-content: center; gap: 0.5rem; margin: 1.5rem 0 2rem 0;">
+                    <span class="intro-dot active" data-dot="0" onclick="jumpToIntroSlide(0)"></span>
+                    <span class="intro-dot" data-dot="1" onclick="jumpToIntroSlide(1)"></span>
+                    <span class="intro-dot" data-dot="2" onclick="jumpToIntroSlide(2)"></span>
+                </div>
+
+                <!-- Action Controls -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" style="margin: 0; min-width: 90px; padding: 0.5rem 1rem;" onclick="closeIntroModal()">Skip</button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" id="intro-prev-btn" class="btn btn-secondary" style="margin: 0; min-width: 90px; display: none; padding: 0.5rem 1rem;" onclick="navigateIntro(-1)">Prev</button>
+                        <button type="button" id="intro-next-btn" class="btn btn-primary" style="margin: 0; min-width: 90px; padding: 0.5rem 1rem;" onclick="navigateIntro(1)">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentStep = 0;
         const totalSteps = 5;
         let commonStudents = [];
         let isScanned = false;
         let pollInterval = null;
+        let inputFiles = [];
 
         function updateProgress() {
             const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -866,13 +940,32 @@
             spinner.style.display = 'block';
             title.textContent = 'Scanning Input Reports';
             status.textContent = 'Reading files and converting via Docling (approx. 5-15 seconds)...';
-            progressContainer.style.display = 'none';
+            progressContainer.style.display = 'block';
+            document.getElementById('modal-progress-bar').style.width = '0%';
             resultsContainer.style.display = 'none';
             modalActions.style.display = 'none';
 
             statusDiv.style.display = 'block';
             statusDiv.innerHTML = '⏳ Scanning...';
             errorDiv.style.display = 'none';
+
+            let scanPollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch('/api/status');
+                    if (statusRes.ok) {
+                        const statusData = await statusRes.json();
+                        if (statusData.stage === 'scanning') {
+                            status.textContent = statusData.message || 'Scanning...';
+                            if (statusData.total > 0) {
+                                const percent = Math.round((statusData.current / statusData.total) * 100);
+                                document.getElementById('modal-progress-bar').style.width = percent + '%';
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Status poll error:", e);
+                }
+            }, 800);
 
             try {
                 const res = await fetch('/api/scan');
@@ -942,6 +1035,19 @@
                     }
                 }
 
+                // Refresh input files list
+                try {
+                    const inputsRes = await fetch('/api/inputs');
+                    const inputsData = await inputsRes.json();
+                    if (inputsData.files) {
+                        inputFiles = inputsData.files;
+                        document.getElementById('files-container').innerHTML = inputsData.files.map(f => `<div class="file-badge">${f}</div>`).join('');
+                    }
+                } catch (e) {
+                    console.warn("Failed to refresh input files list", e);
+                }
+
+                clearInterval(scanPollInterval);
                 isScanned = true;
                 modal.classList.remove('active');
                 
@@ -949,6 +1055,7 @@
                 statusDiv.innerHTML = `✅ Scan complete. Detected ${scanData.common_fields ? scanData.common_fields.length : 0} fields. Click 'Next' to proceed.`;
             } catch (err) {
                 console.error("Scan error:", err);
+                clearInterval(scanPollInterval);
                 isScanned = false;
                 modal.classList.remove('active');
                 
@@ -976,6 +1083,7 @@
             });
 
             const payload = {
+                input_files: inputFiles,
                 student: {
                     name: document.getElementById('student_name').value,
                     id: document.getElementById('student_id').value,
@@ -1103,6 +1211,7 @@
 
             fetch('/api/inputs').then(r => r.json()).then(data => {
                 if (data.files) {
+                    inputFiles = data.files;
                     document.getElementById('files-container').innerHTML = data.files.map(f => `<div class="file-badge">${f}</div>`).join('');
                 }
             });
@@ -1132,6 +1241,16 @@
                     document.getElementById('student_name').value = match.name;
                 }
             });
+
+            // Onboarding Intro triggers if there is no history
+            fetch('/api/history')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.assignments || data.assignments.length === 0) {
+                        showIntroModal();
+                    }
+                })
+                .catch(e => console.warn("Failed to check history for onboarding:", e));
         });
 
         document.querySelectorAll('.step-item').forEach((item, idx) => {
@@ -1144,6 +1263,52 @@
                 showStep(currentStep);
             });
         });
+
+        let currentIntroSlide = 0;
+        const totalIntroSlides = 3;
+
+        function showIntroModal() {
+            document.getElementById('intro-modal').classList.add('active');
+            currentIntroSlide = 0;
+            updateIntroSlide();
+        }
+
+        function closeIntroModal() {
+            document.getElementById('intro-modal').classList.remove('active');
+            localStorage.setItem('hasSeenIntro', 'true');
+        }
+
+        function navigateIntro(dir) {
+            currentIntroSlide += dir;
+            if (currentIntroSlide < 0) currentIntroSlide = 0;
+            if (currentIntroSlide >= totalIntroSlides) {
+                closeIntroModal();
+                return;
+            }
+            updateIntroSlide();
+        }
+
+        function jumpToIntroSlide(idx) {
+            currentIntroSlide = idx;
+            updateIntroSlide();
+        }
+
+        function updateIntroSlide() {
+            const slides = document.querySelectorAll('.intro-slide');
+            const dots = document.querySelectorAll('.intro-dot');
+            slides.forEach((slide, idx) => {
+                slide.style.display = idx === currentIntroSlide ? 'block' : 'none';
+            });
+            dots.forEach((dot, idx) => {
+                if (idx === currentIntroSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+            document.getElementById('intro-prev-btn').style.display = currentIntroSlide > 0 ? 'inline-flex' : 'none';
+            document.getElementById('intro-next-btn').textContent = currentIntroSlide === totalIntroSlides - 1 ? 'Finish' : 'Next';
+        }
     </script>
 </body>
 </html>

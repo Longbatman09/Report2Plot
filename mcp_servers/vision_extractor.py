@@ -61,6 +61,33 @@ class VisionExtractionResult(BaseModel):
     )
 
 
+CANONICAL_SUBJECT_MAP = {
+    # Physics
+    "physics": "physics", "phys": "physics", "phy": "physics", "physics_marks": "physics", "physics_total": "physics",
+    # Chemistry
+    "chemistry": "chemistry", "chem": "chemistry", "che": "chemistry", "chemistry_marks": "chemistry", "chemistry_total": "chemistry",
+    # Mathematics
+    "maths": "maths", "math": "maths", "mathematics": "maths", "mat": "maths", "maths_marks": "maths", "maths_total": "maths",
+    # English
+    "english": "english", "eng": "english", "english_marks": "english",
+    # Biology
+    "biology": "biology", "bio": "biology", "biology_marks": "biology",
+    # Computer Science
+    "computer_science": "computer_science", "cs": "computer_science", "computer": "computer_science", "ip": "computer_science",
+}
+
+def _normalize_key(key: str) -> str:
+    k = key.strip().lower()
+    import re
+    k = re.sub(r'[\s\-/\\]+', '_', k)
+    k = re.sub(r'[^a-z0-9_]', '', k)
+    k = re.sub(r'_+', '_', k)
+    k = k.strip('_')
+    
+    if k in CANONICAL_SUBJECT_MAP:
+        return CANONICAL_SUBJECT_MAP[k]
+    return k
+
 def _normalize_numeric_fields(items: list[VisionExtractionResult.NumericField] | list[dict]) -> Dict[str, float]:
     normalized: Dict[str, float] = {}
     for item in items:
@@ -73,7 +100,8 @@ def _normalize_numeric_fields(items: list[VisionExtractionResult.NumericField] |
         if not name:
             continue
         try:
-            normalized[str(name)] = float(value)
+            norm_key = _normalize_key(str(name))
+            normalized[norm_key] = float(value)
         except (TypeError, ValueError):
             continue
     return normalized
@@ -117,14 +145,25 @@ def extract_report_data(file_path: str, student_name: str,
     If student_name is 'the student' or empty, please identify the primary student in the report and extract their details.
     
     Please populate the fields in the requested schema.
-    For the exam_name field (which represents the generic assignment_name), do NOT include any numbers, series, or sequence numbers (e.g. use "Unit Test" instead of "Unit Test 1" or "Unit Test 2"). There should only be the generic type of exam.
-    For the test_name field, use Sequential Test Numbering to tell which test it is (e.g. "WTM 29", "WTM 30", "Unit Test 1", "Unit Test 2", etc. based on the report content or context).
-    If the student is not present in the report or class list, set found_student to false.
-    Extract the student's name, ID, class, and section if visible in the report.
-    If you see class average, mean, or average marks/scores for the subjects, extract them into class_averages.
-    Only include fields that are numerical in numerical_fields and class_averages.
     
-    Also, please populate the all_students list with all students found in the report (their names and roll numbers/student IDs).
+    --- Tabular Field Discovery Instructions ---
+    To identify and align data fields, look for headers and columns in the document.
+    Categorize columns by the following semantic types:
+    - score: Numeric score, marks, or points for a subject (e.g. Maths, Physics, Chemistry)
+    - aggregate: Total marks or grand total
+    - rank: Position / rank in class or test series
+    - identifier: Roll number or student ID
+    - name: Candidate / Student name
+    
+    Ensure you extract:
+    1. For the exam_name field (generic assignment name): Do NOT include any sequence/series numbers (e.g. use "JEE Main WTM" instead of "JEE Main WTM 30").
+    2. For the test_name field (sequential test number): e.g. "WTM 30", "WTM 31".
+    3. student_name, student_id, class, and section.
+    4. numerical_fields: List all subject names (scores) and aggregates.
+    5. class_averages: List the average / mean score for each subject if visible.
+    
+    If the student is not in the report list, set found_student to false.
+    Also, populate the all_students list with all candidate names and roll numbers found.
     """
     
     genai_client = get_client()

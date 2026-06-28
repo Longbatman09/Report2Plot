@@ -117,7 +117,6 @@ def save_cached_prescan(
     files[filename] = {
         "fingerprint": file_fingerprint(file_path),
         "prescan": extraction,
-        "by_student": files.get(filename, {}).get("by_student", {}),
     }
     _save_cache(assignment_test, cache)
     return assignment_test
@@ -134,30 +133,23 @@ def get_cached_analysis(
     student_name: str,
     student_id: str,
 ) -> dict | None:
-    cache = _load_cache(assignment_test)
-    entry = cache.get("files", {}).get(filename)
+    exam_slug = slugify(assignment_test)
+    student_slug = slugify(student_name)
+    student_json_path = LOCAL_MEM_DIR / assignment_test / f"{exam_slug}_{student_slug}_analyze.json"
+    
+    if not student_json_path.exists():
+        return None
+        
+    try:
+        student_data = json.loads(student_json_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+        
+    entry = student_data.get("files", {}).get(filename)
     if not entry or not _fingerprint_matches(entry, file_path):
         return None
-
-    student_cache = entry.get("by_student", {}).get(_student_key(student_name, student_id))
-    if student_cache:
-        return student_cache.copy()
-
-    prescan = entry.get("prescan")
-    if not prescan:
-        return None
-
-    cached_name = (prescan.get("student_name") or "").strip().lower()
-    cached_id = (prescan.get("student_id") or "").strip().lower()
-    if (
-        cached_name
-        and cached_id
-        and cached_name == student_name.strip().lower()
-        and cached_id == student_id.strip().lower()
-    ):
-        return prescan.copy()
-
-    return None
+        
+    return entry.get("extraction")
 
 
 def save_cached_analysis(
@@ -169,20 +161,55 @@ def save_cached_analysis(
     extraction: dict,
 ) -> str:
     cache = _load_cache(assignment_test)
+    
+    # Enforce rule: only one student per test type
+    active = cache.get("active_student")
+    if active and (active.get("name") != student_name or active.get("id") != student_id):
+        exam_dir = LOCAL_MEM_DIR / assignment_test
+        if exam_dir.exists():
+            for f in exam_dir.glob("*_analyze.json"):
+                try:
+                    f.unlink()
+                except Exception:
+                    pass
+                
+    cache["active_student"] = {"name": student_name, "id": student_id}
+    
     files = cache.setdefault("files", {})
     entry = files.setdefault(
         filename,
         {
             "fingerprint": file_fingerprint(file_path),
             "prescan": None,
-            "by_student": {},
         },
     )
     entry["fingerprint"] = file_fingerprint(file_path)
-    entry.setdefault("by_student", {})[_student_key(student_name, student_id)] = extraction
-    if not entry.get("prescan"):
-        entry["prescan"] = extraction
+    if "by_student" in entry:
+        del entry["by_student"]
+        
     _save_cache(assignment_test, cache)
+    
+    # Save student marks exclusively to the new student json file
+    exam_slug = slugify(assignment_test)
+    student_slug = slugify(student_name)
+    student_json_path = LOCAL_MEM_DIR / assignment_test / f"{exam_slug}_{student_slug}_analyze.json"
+    
+    student_data = {}
+    if student_json_path.exists():
+        try:
+            student_data = json.loads(student_json_path.read_text(encoding="utf-8"))
+        except Exception:
+            student_data = {}
+            
+    files_dict = student_data.setdefault("files", {})
+    files_dict[filename] = {
+        "fingerprint": file_fingerprint(file_path),
+        "extraction": extraction
+    }
+    
+    student_json_path.parent.mkdir(parents=True, exist_ok=True)
+    student_json_path.write_text(json.dumps(student_data, indent=4, ensure_ascii=False), encoding="utf-8")
+    
     return assignment_test
 
 
@@ -215,21 +242,26 @@ def list_assignment_history() -> list[dict]:
         exam_names = []
         filenames = []
 
+        active_student = cache.get("active_student")
+        if active_student:
+            students.append(active_student)
+
         for filename, entry in files.items():
             filenames.append(filename)
             prescan = entry.get("prescan") or {}
             if prescan.get("exam_name"):
                 exam_names.append(prescan["exam_name"])
-            if prescan.get("student_name") or prescan.get("student_id"):
-                students.append(
-                    {
-                        "name": prescan.get("student_name", ""),
-                        "id": prescan.get("student_id", ""),
-                    }
-                )
-            for student_key in entry.get("by_student", {}):
-                name, _, student_id = student_key.partition("|")
-                students.append({"name": name, "id": student_id})
+            if not active_student:
+                if prescan.get("student_name") or prescan.get("student_id"):
+                    students.append(
+                        {
+                            "name": prescan.get("student_name", ""),
+                            "id": prescan.get("student_id", ""),
+                        }
+                    )
+                for student_key in entry.get("by_student", {}):
+                    name, _, student_id = student_key.partition("|")
+                    students.append({"name": name, "id": student_id})
 
         unique_students = []
         seen = set()
@@ -253,3 +285,21 @@ def list_assignment_history() -> list[dict]:
         )
 
     return history
+
+
+def load_student_analysis_json(
+    assignment_test: str,
+    student_name: str,
+    student_id: str,
+) -> dict:
+    exam_slug = slugify(assignment_test)
+    student_slug = slugify(student_name)
+    student_json_path = LOCAL_MEM_DIR / assignment_test / f"{exam_slug}_{student_slug}_analyze.json"
+    
+    if not student_json_path.exists():
+        return {}
+        
+    try:
+        return json.loads(student_json_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}

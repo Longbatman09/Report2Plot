@@ -10,7 +10,7 @@ import json
 import time
 import threading
 import re
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import urllib.parse
 
 from dotenv import load_dotenv
@@ -48,11 +48,11 @@ def check_heartbeat_loop(httpd):
         time.sleep(1.0)
         now = time.time()
         with state_lock:
-            # 1. Prune clients that haven't pinged in 90 seconds
-            expired_clients = [cid for cid, last_seen in active_clients.items() if now - last_seen > 90.0]
+            # 1. Prune clients that haven't pinged in 300 seconds (5 minutes)
+            expired_clients = [cid for cid, last_seen in active_clients.items() if now - last_seen > 300.0]
             for cid in expired_clients:
                 active_clients.pop(cid, None)
-                print(f"[Heartbeat] Client {cid} expired (no ping for 90s).")
+                print(f"[Heartbeat] Client {cid} expired (no ping for 300s).")
             
             # 2. Update last_empty_time if active_clients is empty
             if heartbeat_received and not active_clients:
@@ -62,16 +62,17 @@ def check_heartbeat_loop(httpd):
                 last_empty_time = None
                 
             # 3. Check for shutdown condition
+            # Never shut down the server if an active pipeline is in progress (i.e. pipeline_lock is locked)
             if heartbeat_received and not active_clients:
-                if last_empty_time and (now - last_empty_time > 4.0):
-                    print("[Heartbeat] No active GUI clients. Shutting down server...")
+                if not pipeline_lock.locked() and last_empty_time and (now - last_empty_time > 15.0):
+                    print("[Heartbeat] No active GUI clients and no pipeline running. Shutting down server...")
                     threading.Thread(target=httpd.shutdown, daemon=True).start()
                     os._exit(0)
             
-            # Case B: Server started but no GUI client connected within 30 seconds
+            # Case B: Server started but no GUI client connected within 60 seconds
             if not heartbeat_received:
-                if now - startup_time > 30.0:
-                    print("[Heartbeat] No GUI connection established within 30 seconds. Shutting down server...")
+                if now - startup_time > 60.0:
+                    print("[Heartbeat] No GUI connection established within 60 seconds. Shutting down server...")
                     threading.Thread(target=httpd.shutdown, daemon=True).start()
                     os._exit(0)
 
@@ -241,16 +242,20 @@ def prescan_input_files():
     inputs = fw.list_input_files()
     files = inputs.get("files", [])
     if not files:
+        set_state("scanning", 0, 0, "No files found to scan.")
         return {"common_fields": [], "student": {"name": "", "id": "", "class": "", "section": ""}}
 
     lm.ensure_local_mem_dir()
+    set_state("scanning", 0, len(files), "Initializing scan of input files...")
+    
     scan_results = []
     extraction_errors = []
     cache_hits = []
     assignment_tests = []
 
-    for filename in files:
+    for i, filename in enumerate(files):
         try:
+            set_state("scanning", i, len(files), f"Scanning and converting {filename}...")
             result, assignment_test, from_cache = extract_for_prescan(filename)
             scan_results.append(result)
             assignment_tests.append(assignment_test)
@@ -260,11 +265,13 @@ def prescan_input_files():
             extraction_errors.append(f"{filename}: {ex}")
 
     if not scan_results:
+        set_state("idle", 0, 0, "Pre-scan failed.")
         raise RuntimeError(
             "Pre-scan failed for every report. "
             + ("; ".join(extraction_errors) if extraction_errors else "No extraction results were produced.")
         )
 
+    set_state("scanning", len(files), len(files), "Finished scanning. Finalizing results...")
     payload = build_scan_payload(scan_results)
     payload["assignment_tests"] = sorted(set(assignment_tests))
     if cache_hits:
@@ -274,6 +281,8 @@ def prescan_input_files():
         ]
     if extraction_errors:
         payload["warnings"] = payload.get("warnings", []) + extraction_errors
+        
+    set_state("idle", 0, 0, "Idle")
     return payload
 
 def run_pipeline(instruction_data):
@@ -306,25 +315,35 @@ def run_pipeline(instruction_data):
                     print(f"Warning: Conversion failed for {filename}: {ex}")
 
             # Phase 2: Extract data from the converted documents
+            # (This loop populates the student-specific JSON file)
+            assignment_test = lm.detect_assignment_test(files[0]) if files else "assignment_test"
             for idx, filename in enumerate(files):
                 set_state("extracting", idx + 1, len(files), f"Extracting marks from {filename}...")
                 print(f"[{idx+1}/{len(files)}] Processing {filename}...")
 
                 try:
-                    res, _, _ = extract_for_analysis(filename, student_name, student_id)
-                    res["source_file"] = filename
-
-                    if not res.get("found_student", False):
-                        msg = f"Student {student_name} not found in {filename}"
-                        extraction_errors.append(msg)
-                        print(f"Warning: {msg}. Skipping.")
-                        continue
-
-                    results.append(res)
+                    res, file_assignment_test, _ = extract_for_analysis(filename, student_name, student_id)
+                    assignment_test = file_assignment_test
                 except Exception as ex:
                     msg = f"{filename}: {ex}"
                     extraction_errors.append(msg)
                     print(f"Warning: Error extracting data from {msg}")
+
+            # Phase 3: Load the student-specific JSON file to analyze and plot the data
+            print("Analyzing student JSON data for plotting...")
+            student_data = lm.load_student_analysis_json(assignment_test, student_name, student_id)
+            
+            results = []
+            files_dict = student_data.get("files", {})
+            for filename, entry in files_dict.items():
+                extraction = entry.get("extraction", {})
+                if extraction.get("found_student", False):
+                    extraction["source_file"] = filename
+                    results.append(extraction)
+                else:
+                    msg = f"Student {student_name} not found in {filename}"
+                    extraction_errors.append(msg)
+                    print(f"Warning: {msg}.")
 
             if not results:
                 raise Exception(
@@ -341,10 +360,10 @@ def run_pipeline(instruction_data):
             output_format = instruction_data.get("output", {}).get("format", "both")
             instruction_path = "analyze_instruction.json"
 
-            if output_format in ("matplotlib", "pptx", "both"):
+            if output_format in ("plotly", "matplotlib", "pptx", "both"):
                 print("Rendering Matplotlib charts...")
                 plot_res = pr.render_matplotlib(aggregated, instruction_path)
-                if output_format in ("matplotlib", "both") and plot_res.get("status") == "success":
+                if output_format in ("plotly", "matplotlib", "both") and plot_res.get("status") == "success":
                     generated_files.extend(plot_res.get("charts", []))
 
             if output_format in ("pptx", "both"):
@@ -394,6 +413,8 @@ class OrchestratorHTTPHandler(BaseHTTPRequestHandler):
             self.serve_static_file("ui/description_page.html", "text/html")
         elif path == "/history_page.html":
             self.serve_static_file("ui/history_page.html", "text/html")
+        elif path == "/exam_detail_page.html":
+            self.serve_static_file("ui/exam_detail_page.html", "text/html")
         elif path == "/api/inputs":
             self.handle_api_inputs()
         elif path == "/api/scan":
@@ -597,7 +618,7 @@ def main(port=5000):
     
     while port <= 5010:
         try:
-            httpd = HTTPServer(server_address, handler_class)
+            httpd = ThreadingHTTPServer(server_address, handler_class)
             print(f"\n==================================================")
             print(f"Report2Statistics Orchestrator & UI Server Ready!")
             print(f"URL: http://localhost:{port}/description_page.html")

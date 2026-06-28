@@ -2,8 +2,7 @@ from mcp.server.fastmcp import FastMCP
 import os, json
 from pathlib import Path
 import matplotlib
-# Use non-interactive backend for matplotlib to avoid GUI thread errors
-matplotlib.use('Agg')
+matplotlib.use('Agg') # Non-interactive backend
 import matplotlib.pyplot as plt
 import numpy as np
 from pptx import Presentation
@@ -11,6 +10,8 @@ from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
 import datetime
+from mcp_servers.vision_extractor import _normalize_key
+import math
 
 mcp = FastMCP("plot-renderer")
 OUTPUT_DIR = Path("output")
@@ -19,7 +20,10 @@ def safe_float(val):
     if val is None:
         return 0.0
     try:
-        return float(val)
+        f_val = float(val)
+        if math.isnan(f_val) or math.isinf(f_val):
+            return 0.0
+        return f_val
     except (ValueError, TypeError):
         return 0.0
 
@@ -177,6 +181,8 @@ def get_data_for_field(data, dt_name):
     values = []
     class_avg_values = []
     
+    norm_query = _normalize_key(dt_name)
+    
     for r in data.get("results", []):
         exams.append(r.get("test_name") or r.get("exam_name", "Unknown"))
         fields = r.get("numerical_fields", {})
@@ -185,8 +191,10 @@ def get_data_for_field(data, dt_name):
         # Student score extraction
         val = fields.get(dt_name)
         if val is None:
+            val = fields.get(norm_query)
+        if val is None:
             for k, v in fields.items():
-                if k.lower() == dt_name.lower():
+                if _normalize_key(k) == norm_query:
                     val = v
                     break
         values.append(safe_float(val))
@@ -194,8 +202,10 @@ def get_data_for_field(data, dt_name):
         # Class average extraction
         avg_val = avgs.get(dt_name)
         if avg_val is None:
+            avg_val = avgs.get(norm_query)
+        if avg_val is None:
             for k, v in avgs.items():
-                if k.lower() == dt_name.lower():
+                if _normalize_key(k) == norm_query:
                     avg_val = v
                     break
         class_avg_values.append(safe_float(avg_val))

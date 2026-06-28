@@ -1,30 +1,35 @@
 {
+  "input_files": [
+    "06-06-2026_SR C 120 (INCOMING)_Jee-Main_WTM-29_INTERNAL ANALYSIS.pdf",
+    "20-06-2026_SR C 120 (INCOMING)_Jee-Main_WTM 30_INTERNAL ANALYSIS.pdf",
+    "27-06-2026_SR C 120 (INCOMING)_Jee-Main_WTM 31_INTERNAL ANALYSIS.pdf"
+  ],
   "student": {
-    "name": "MUHAMMADAKRAMS",
-    "id": "257406833",
+    "name": "B VISHAL CHANDRAKANTH",
+    "id": "257402707",
     "class": "12",
-    "section": ""
+    "section": "INCOMING"
   },
-  "exam_name": "JEE-MAIN WTM",
+  "exam_name": "JEE MAIN WTM",
   "output": {
     "format": "matplotlib",
-    "overall_report": false,
-    "class_avg_comparison": false,
+    "overall_report": true,
+    "class_avg_comparison": true,
     "trend_line": true
   },
   "data_types": [
     {
-      "name": "chemistry_marks",
+      "name": "chemistry",
       "enabled": true,
       "chart": "line"
     },
     {
-      "name": "maths_marks",
+      "name": "maths",
       "enabled": true,
       "chart": "line"
     },
     {
-      "name": "physics_marks",
+      "name": "physics",
       "enabled": true,
       "chart": "line"
     },

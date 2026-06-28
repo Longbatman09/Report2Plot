@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam History Detail</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9f9f9;
+            --bg-tertiary: #f3f3f3;
+            --text-primary: #000000;
+            --text-secondary: #404040;
+            --text-tertiary: #707070;
+            --border-color: #e0e0e0;
+            --accent-dark: #000000;
+            --accent-success: #155724;
+            --bg-success: #d4edda;
+            --border-success: #c3e6cb;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-content h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-content p {
+            font-size: 0.95rem;
+            color: var(--text-tertiary);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-dark);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: rgba(0, 0, 0, 0.85);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-dark);
+        }
+
+        .btn-success {
+            background: var(--bg-success);
+            border: 1px solid var(--border-success);
+            color: var(--accent-success);
+            text-transform: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+        }
+
+        .btn-success:hover {
+            background: #c3e6cb;
+            transform: translateY(-1px);
+        }
+
+        .section-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--bg-tertiary);
+            padding-bottom: 0.5rem;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .meta-item h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 0.25rem;
+        }
+
+        .meta-item p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .file-list, .student-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .student-item:hover {
+            border-color: var(--accent-dark);
+            transform: translateX(4px);
+        }
+
+        .student-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .student-id {
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+        }
+
+        .badge-list {
+            margin-top: 0.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-right: 0.5rem;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .error-state h2 {
+            font-family: 'Outfit', sans-serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .error-state p {
+            color: var(--text-tertiary);
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1 id="exam-display-name">Exam Details</h1>
+                <p id="exam-date-meta">Loading history details...</p>
+            </div>
+            <a href="history_page.html" class="btn btn-secondary">← Back to List</a>
+        </header>
+
+        <div id="content" style="display: none;">
+            <div class="section-card">
+                <h2>Overview</h2>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <h4>Exam Series Group</h4>
+                        <p id="exam-group-name">N/A</p>
+                    </div>
+                    <div class="meta-item">
+                        <h4>Total Students</h4>
+                        <p id="exam-student-count">N/A</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>Processed Reports</h2>
+                <div class="file-list" id="exam-files-list">
+                    <!-- Files populated here -->
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2>Student Directory</h2>
+                <div class="student-list" id="exam-students-list">
+                    <!-- Students populated here -->
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <a id="load-group-btn" href="#" class="btn btn-primary">Load Group Configuration</a>
+            </div>
+        </div>
+
+        <div id="error-container" style="display: none;">
+            <div class="error-state">
+                <h2>History Record Not Found</h2>
+                <p id="error-message">Could not retrieve detail for the specified exam group.</p>
+                <a href="history_page.html" class="btn btn-secondary">Back to History List</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function formatDate(iso) {
+            if (!iso) return 'Unknown Date';
+            try {
+                const date = new Date(iso);
+                if (isNaN(date.getTime())) return iso;
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch {
+                return iso;
+            }
+        }
+
+        async function loadExamDetail() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetExamName = urlParams.get('exam_name');
+
+            if (!targetExamName) {
+                showError("No exam series specified in the URL.");
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+
+                if (!res.ok) throw new Error(data.error || 'Failed to retrieve list.');
+
+                const assignment = (data.assignments || []).find(item => 
+                    item.exam_names && item.exam_names.includes(targetExamName)
+                );
+
+                if (!assignment) {
+                    showError(`No history record found matching exam group "${targetExamName}".`);
+                    return;
+                }
+
+                // Populate UI
+                document.getElementById('exam-display-name').textContent = assignment.display_name;
+                document.getElementById('exam-date-meta').textContent = `Processed on ${formatDate(assignment.updated_at)}`;
+                document.getElementById('exam-group-name').textContent = assignment.exam_names.join(', ');
+                document.getElementById('exam-student-count').textContent = `${assignment.students.length} Student${assignment.students.length === 1 ? '' : 's'}`;
+
+                // Populate Files
+                const filesList = document.getElementById('exam-files-list');
+                filesList.innerHTML = assignment.files.map(f => `
+                    <div class="file-item">
+                        <span>📄</span>
+                        <span>${f}</span>
+                    </div>
+                `).join('');
+
+                // Populate Students
+                const studentsList = document.getElementById('exam-students-list');
+                studentsList.innerHTML = assignment.students.map(s => `
+                    <div class="student-item">
+                        <div class="student-info">
+                            <span class="student-name">${s.name || 'Unknown'}</span>
+                            ${s.id ? `<span class="student-id">(${s.id})</span>` : ''}
+                        </div>
+                        <a href="description_page.html?exam_name=${encodeURIComponent(assignment.exam_names[0] || '')}&student_id=${encodeURIComponent(s.id || '')}" class="btn btn-success">
+                            ➕ Add Consecutive Data
+                        </a>
+                    </div>
+                `).join('');
+
+                // Setup action buttons
+                document.getElementById('load-group-btn').href = `description_page.html?exam_name=${encodeURIComponent(assignment.exam_names[0] || '')}`;
+
+                document.getElementById('content').style.display = 'block';
+            } catch (err) {
+                showError(err.message);
+            }
+        }
+
+        function showError(msg) {
+            document.getElementById('error-message').textContent = msg;
+            document.getElementById('error-container').style.display = 'block';
+            document.getElementById('content').style.display = 'none';
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadExamDetail();
+
+            const clientId = Math.random().toString(36).substring(2);
+            function sendHeartbeat() {
+                fetch(`/api/heartbeat?client_id=${clientId}`).catch(() => {});
+            }
+            sendHeartbeat();
+            setInterval(sendHeartbeat, 2000);
+            window.addEventListener('beforeunload', () => {
+                if (navigator.sendBeacon) navigator.sendBeacon(`/api/heartbeat?client_id=${clientId}&closing=true`);
+            });
+        });
+    </script>
+</body>
+</html>
