@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Analytics Setup</title>
+    <title>Student Report Setup</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -249,6 +249,89 @@
         .file-badge:hover {
             background: var(--bg-tertiary);
             border-color: var(--accent-dark);
+        }
+
+        .upload-dropzone {
+            border: 1.5px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            background: linear-gradient(180deg, var(--bg-secondary), var(--bg-primary));
+            transition: var(--transition);
+            margin-bottom: 1rem;
+        }
+
+        .upload-dropzone.active {
+            border-color: var(--accent-dark);
+            background: var(--accent-light);
+        }
+
+        .upload-dropzone-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .upload-dropzone-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-dropzone-copy {
+            font-size: 0.92rem;
+            color: var(--text-tertiary);
+            line-height: 1.5;
+        }
+
+        .upload-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .selected-files-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .selected-file-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 999px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            max-width: 100%;
+        }
+
+        .selected-file-pill span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 320px;
+        }
+
+        .selected-file-remove {
+            border: none;
+            background: transparent;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .upload-status {
+            margin-top: 0.75rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
         .toggle-switch {
@@ -602,7 +685,7 @@
     <div class="wizard-container">
         <div class="wizard-sidebar">
             <div class="wizard-header">
-                <h1 class="wizard-title">Analytics</h1>
+                <h1 class="wizard-title">Student Reports</h1>
                 <p class="wizard-subtitle">Step-by-step report setup</p>
             </div>
 
@@ -628,36 +711,43 @@
         <div class="wizard-main">
             <div class="wizard-content">
                 <div class="wizard-page active" data-page="0">
-                    <h1 class="page-title">Select Reports</h1>
-                    <p class="page-description">Verify the input files and exam name for analysis</p>
+                    <h1 class="page-title">Upload Marksheet PDFs</h1>
+                    <p class="page-description">Drop report files here or browse from your computer, then choose the student from the directory.</p>
 
                     <div class="form-group">
-                        <label>Available Reports</label>
-                        <div id="files-container" class="files-grid">
-                            <div class="file-badge">Checking files...</div>
+                        <label>Selected Reports</label>
+                        <div class="upload-dropzone" id="upload-dropzone">
+                            <input type="file" id="report-file-input" multiple accept=".pdf,.png,.jpg,.jpeg" style="display: none;">
+                            <div class="upload-dropzone-header">
+                                <div>
+                                    <div class="upload-dropzone-title">Drag and drop reports here</div>
+                                    <div class="upload-dropzone-copy">or browse to pick PDFs and images from this device.</div>
+                                </div>
+                                <div class="upload-actions">
+                                    <label for="report-file-input" class="btn btn-secondary" style="display: inline-block; cursor: pointer; margin-bottom: 0;">Browse Files</label>
+                                    <button type="button" class="btn btn-secondary" onclick="clearSelectedFiles()" id="clear-files-btn" disabled>Clear</button>
+                                </div>
+                            </div>
+                            <div class="upload-dropzone-copy">Files are uploaded to the local analyzer as soon as you select them. Nothing from the server input folder is shown here.</div>
                         </div>
-                        <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 1rem;" onclick="scanNewFiles()" id="scan-new-btn">
-                            🔄 Scan New Files
-                        </button>
+                        <div id="selected-files-list" class="selected-files-list">
+                            <div class="upload-status">No files selected yet.</div>
+                        </div>
+                        <div id="upload-status" class="upload-status"></div>
                         <div id="scan-status" style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary); display: none;"></div>
                         <div id="scan-error" style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 6px; color: #fca5a5; font-size: 0.9rem; display: none;"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="exam_name">Exam / Assignment Group</label>
-                        <input type="text" id="exam_name" placeholder="e.g. JEE Main WTM 29" required>
                     </div>
                 </div>
 
                 <div class="wizard-page" data-page="1">
-                    <h1 class="page-title">Student Identity</h1>
-                    <p class="page-description">Enter the student's basic information</p>
+                    <h1 class="page-title">Resolved Student Identity</h1>
+                    <p class="page-description">Confirm the student details before the report is generated</p>
 
                     <div class="input-group">
                         <div class="form-group">
                             <label for="student_name">Full Name</label>
-                            <input type="text" id="student_name" list="student_names" placeholder="e.g. John Doe" required>
-                            <datalist id="student_names"></datalist>
+                            <input type="text" id="student_name" list="student_directory_list" placeholder="--" required>
+                            <datalist id="student_directory_list"></datalist>
                         </div>
                         <div class="form-group">
                             <label for="student_id">Student ID</label>
@@ -678,81 +768,48 @@
                 </div>
 
                 <div class="wizard-page" data-page="2">
-                    <h1 class="page-title">Data Fields</h1>
-                    <p class="page-description">Configure which subjects and fields to analyze</p>
+                    <h1 class="page-title">Extraction Summary</h1>
+                    <p class="page-description">Review the detected files and the fields found in the marksheets</p>
 
                     <div id="data-fields-container">
                         <p style="color: var(--text-tertiary); text-align: center; padding: 2rem;">
-                            Return to Step 1 and scan files to auto-detect fields
+                            Return to Step 1 and scan files to auto-detect the available report fields
                         </p>
                     </div>
                 </div>
 
                 <div class="wizard-page" data-page="3">
-                    <h1 class="page-title">Output & Analytics</h1>
-                    <p class="page-description">Choose output format and analysis options</p>
+                    <h1 class="page-title">Output Settings</h1>
+                    <p class="page-description">Choose how the final student report should be saved</p>
 
                     <div class="form-group">
                         <label>Output Format</label>
                         <div class="radio-group">
                             <label class="radio-label">
-                                <input type="radio" name="output_format" value="pptx" checked>
-                                PowerPoint Presentation
+                                <input type="radio" name="output_format" value="markdown" checked>
+                                Markdown Report
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="output_format" value="charts">
+                                Charts & Analysis Only
                             </label>
                             <label class="radio-label">
                                 <input type="radio" name="output_format" value="both">
-                                PowerPoint + Charts
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="output_format" value="matplotlib">
-                                Matplotlib Charts Only
+                                Markdown + Charts
                             </label>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label>Analysis Options</label>
-                        <div class="option-row">
-                            <div class="option-info">
-                                <h3>Overall Summary</h3>
-                                <p>Combine all subjects on one chart</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="option_overall" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="option-row">
-                            <div class="option-info">
-                                <h3>Class Comparison</h3>
-                                <p>Compare to class averages</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="option_class_avg" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <div class="option-row">
-                            <div class="option-info">
-                                <h3>Trend Line</h3>
-                                <p>Show performance trajectory</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="option_trend" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="extra_description">Additional Notes</label>
-                        <textarea id="extra_description" placeholder="Add focus areas or special notes..."></textarea>
+                        <label>Report Notes</label>
+                        <p style="font-size: 0.9rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Optional note to preserve alongside the generated student report.</p>
+                        <textarea id="extra_description" placeholder="Add optional notes for the final report..."></textarea>
                     </div>
                 </div>
 
                 <div class="wizard-page" data-page="4">
-                    <h1 class="page-title">Ready to Analyze</h1>
-                    <p class="page-description">Review your settings and run the analysis</p>
+                    <h1 class="page-title">Ready to Generate</h1>
+                    <p class="page-description">Review your settings and generate the student report</p>
 
                     <div id="review-summary" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
                         <p style="color: var(--text-tertiary); text-align: center;">Loading summary...</p>
@@ -778,7 +835,7 @@
             
             <!-- Progress Bar inside Modal Box -->
             <div class="progress-bar" style="width: 100%; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; margin: 1.5rem 0;" id="modal-progress-container">
-                <div class="progress-fill" id="modal-progress-bar" style="width: 0%; height: 100%; background: var(--color-primary); transition: width 0.3s;"></div>
+                <div class="progress-fill" id="modal-progress-bar" style="width: 0%; height: 100%; background: var(--accent-dark); transition: width 0.3s;"></div>
             </div>
             
             <div id="results-container" style="display: none;">
@@ -802,7 +859,7 @@
                         <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">📊</div>
                         <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Welcome to Report2Plot</h2>
                         <p style="color: var(--text-secondary); font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
-                            An automated academic analytics platform. Converted report files are cached locally, student score records are extracted using Gemini, and styled PowerPoint slide decks and Matplotlib charts are rendered instantly.
+                            Upload marksheet PDFs, resolve the student from the directory, extract per-test results, and render a clean student report JSON plus Markdown summary.
                         </p>
                     </div>
                     <!-- Slide 2 -->
@@ -810,9 +867,9 @@
                         <div style="font-size: 3.5rem; text-align: center; margin-bottom: 1.5rem;">⚙️</div>
                         <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary); text-align: center;">How it works</h2>
                         <div style="margin: 1.5rem 0; font-size: 1.05rem; color: var(--text-secondary); line-height: 2.0;">
-                            <p style="margin-bottom: 0.85rem;"><strong>1. Place Files:</strong> Put your PDF/image report cards in the <code>input/</code> directory.</p>
-                            <p style="margin-bottom: 0.85rem;"><strong>2. Scan Input:</strong> Click <strong>Analyze Files</strong> in Step 1 to auto-detect subjects and class list registries.</p>
-                            <p style="margin-bottom: 0.85rem;"><strong>3. Configure & Run:</strong> Select student name, choose fields, choose output format, and run the pipeline!</p>
+                            <p style="margin-bottom: 0.85rem;"><strong>1. Upload Files:</strong> Drop at least two mark sheet PDFs or browse from your computer.</p>
+                            <p style="margin-bottom: 0.85rem;"><strong>2. Resolve Student:</strong> Enter a name or ID from <code>All_stud_details.json</code> and confirm the auto-filled identity fields.</p>
+                            <p style="margin-bottom: 0.85rem;"><strong>3. Generate Report:</strong> Review the detected fields, pick JSON or Markdown output, and generate the final student report.</p>
                         </div>
                     </div>
                     <!-- Slide 3 -->
@@ -820,7 +877,7 @@
                         <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">🚀</div>
                         <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary);">Ready to begin!</h2>
                         <p style="color: var(--text-secondary); font-size: 1.1rem; line-height: 1.6; margin-bottom: 1.5rem;">
-                            Everything is pre-configured and ready. Let's make educational statistics effortless and professional!
+                            Everything is pre-configured and ready to turn raw marksheets into a structured student report.
                         </p>
                     </div>
                 </div>
@@ -848,9 +905,136 @@
         let currentStep = 0;
         const totalSteps = 5;
         let commonStudents = [];
+        let studentDirectory = [];
         let isScanned = false;
         let pollInterval = null;
-        let inputFiles = [];
+        let selectedFiles = [];
+
+        function openFilePicker() {
+            document.getElementById('report-file-input').click();
+        }
+
+        function updateNextButtonState() {
+            const nextBtn = document.getElementById('next-btn');
+            if (!nextBtn) {
+                return;
+            }
+
+            const studentName = document.getElementById('student_name');
+            const studentQueryMissing = !studentName || !studentName.value.trim();
+            const needsSelection = currentStep === 0 && !isScanned;
+            const needsStudentQuery = currentStep === totalSteps - 1 || currentStep === 1;
+
+            nextBtn.disabled = (needsSelection && selectedFiles.length < 1) || (needsStudentQuery && studentQueryMissing);
+        }
+
+        function renderSelectedFiles() {
+            const list = document.getElementById('selected-files-list');
+            const clearBtn = document.getElementById('clear-files-btn');
+            const status = document.getElementById('upload-status');
+
+            list.innerHTML = '';
+
+            if (!selectedFiles.length) {
+                list.innerHTML = '<div class="upload-status">No files selected yet.</div>';
+                clearBtn.disabled = true;
+                status.textContent = '';
+                updateNextButtonState();
+                return;
+            }
+
+            selectedFiles.forEach(fileName => {
+                const pill = document.createElement('div');
+                pill.className = 'selected-file-pill';
+
+                const label = document.createElement('span');
+                label.title = fileName;
+                label.textContent = fileName;
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'selected-file-remove';
+                removeButton.setAttribute('aria-label', `Remove ${fileName}`);
+                removeButton.textContent = '×';
+                removeButton.addEventListener('click', () => removeSelectedFile(fileName));
+
+                pill.appendChild(label);
+                pill.appendChild(removeButton);
+                list.appendChild(pill);
+            });
+
+            clearBtn.disabled = false;
+            status.textContent = `${selectedFiles.length} file${selectedFiles.length === 1 ? '' : 's'} ready for scanning.`;
+            updateNextButtonState();
+        }
+
+        async function uploadSelectedFiles(fileList) {
+            const files = Array.from(fileList || []).filter(file => /\.(pdf|png|jpe?g)$/i.test(file.name));
+            if (!files.length) {
+                throw new Error('Select at least one PDF or image file.');
+            }
+
+            const formData = new FormData();
+            files.forEach(file => formData.append('files', file, file.name));
+
+            document.getElementById('upload-status').textContent = 'Uploading selected files...';
+
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to upload selected files.');
+            }
+
+            data.files.forEach(fileName => {
+                if (!selectedFiles.includes(fileName)) {
+                    selectedFiles.push(fileName);
+                }
+            });
+            selectedFiles.sort((a, b) => a.localeCompare(b));
+            isScanned = false;
+            currentStep = 0;
+            renderSelectedFiles();
+            showStep(0);
+        }
+
+        async function handleFileSelection(fileList) {
+            try {
+                await uploadSelectedFiles(fileList);
+                document.getElementById('scan-error').style.display = 'none';
+            } catch (err) {
+                document.getElementById('upload-status').textContent = '';
+                document.getElementById('scan-error').style.display = 'block';
+                document.getElementById('scan-error').textContent = `Error: ${err.message}`;
+            }
+        }
+
+        function clearSelectedFiles() {
+            selectedFiles = [];
+            isScanned = false;
+            currentStep = 0;
+            renderSelectedFiles();
+            document.getElementById('report-file-input').value = '';
+            document.getElementById('scan-error').style.display = 'none';
+            showStep(0);
+        }
+
+        function removeSelectedFile(fileName) {
+            selectedFiles = selectedFiles.filter(name => name !== fileName);
+            isScanned = false;
+            currentStep = 0;
+            renderSelectedFiles();
+            showStep(0);
+        }
+
+        function scanSelectedFiles() {
+            isScanned = false;
+            showStep(0);
+            runScanWithLoading();
+        }
 
         function updateProgress() {
             const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -870,14 +1054,14 @@
             const nextBtn = document.getElementById('next-btn');
             
             if (step === totalSteps - 1) {
-                nextBtn.textContent = 'Run Analysis';
+                nextBtn.textContent = 'Generate Report';
             } else if (step === 0) {
-                nextBtn.textContent = isScanned ? 'Next' : 'Analyze Files';
+                nextBtn.textContent = isScanned ? 'Next' : 'Scan Files';
             } else {
                 nextBtn.textContent = 'Next';
             }
 
-            nextBtn.disabled = false;
+            updateNextButtonState();
 
             if (step === 4) updateReviewSummary();
             updateProgress();
@@ -885,7 +1069,7 @@
 
         function nextStep() {
             if (currentStep === 0 && !isScanned) {
-                runScanWithLoading();
+                scanSelectedFiles();
             } else if (currentStep < totalSteps - 1) {
                 currentStep++;
                 showStep(currentStep);
@@ -903,11 +1087,7 @@
 
         function updateReviewSummary() {
             const summary = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div>
-                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Exam Group</p>
-                        <p style="font-weight: 600;">${document.getElementById('exam_name').value || '-'}</p>
-                    </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem;">
                     <div>
                         <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Student</p>
                         <p style="font-weight: 600;">${document.getElementById('student_name').value || '-'}</p>
@@ -935,6 +1115,7 @@
             const modalActions = document.getElementById('modal-actions');
             const statusDiv = document.getElementById('scan-status');
             const errorDiv = document.getElementById('scan-error');
+            let scanPollInterval = null;
 
             modal.classList.add('active');
             spinner.style.display = 'block';
@@ -949,7 +1130,16 @@
             statusDiv.innerHTML = '⏳ Scanning...';
             errorDiv.style.display = 'none';
 
-            let scanPollInterval = setInterval(async () => {
+            if (selectedFiles.length < 1) {
+                clearInterval(scanPollInterval);
+                modal.classList.remove('active');
+                isScanned = false;
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Error: Select at least 1 report file first.';
+                return;
+            }
+
+            scanPollInterval = setInterval(async () => {
                 try {
                     const statusRes = await fetch('/api/status');
                     if (statusRes.ok) {
@@ -968,7 +1158,11 @@
             }, 800);
 
             try {
-                const res = await fetch('/api/scan');
+                const res = await fetch('/api/scan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ input_files: selectedFiles }),
+                });
                 const scanData = await res.json();
 
                 if (!res.ok) {
@@ -976,42 +1170,45 @@
                 }
 
                 // Populate subjects checkboxes
-                if (scanData.common_fields && scanData.common_fields.length > 0) {
-                    const container = document.getElementById('data-fields-container');
-                    container.innerHTML = '';
-                    scanData.common_fields.forEach(field => {
-                        const row = document.createElement('div');
-                        row.className = 'option-row';
-                        row.innerHTML = `
-                            <div class="option-info">
-                                <h3>${field}</h3>
-                                <p>Enable for analysis</p>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" data-field="${field}" checked>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        `;
-                        container.appendChild(row);
-                    });
-                } else {
-                    document.getElementById('data-fields-container').innerHTML = `
-                        <p style="color: var(--text-tertiary); text-align: center; padding: 2rem;">
-                            ⚠️ No common subject fields detected. Full extraction will run automatically.
-                        </p>
-                    `;
-                }
+                const container = document.getElementById('data-fields-container');
+                const reportFields = scanData.common_fields && scanData.common_fields.length > 0 ? scanData.common_fields : [];
+                const reportFiles = scanData.selected_files && scanData.selected_files.length > 0 ? scanData.selected_files : selectedFiles;
+                container.innerHTML = `
+                    <div class="summary-box" style="margin-bottom: 1rem;">
+                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Selected Files</p>
+                        <p style="font-weight: 600; margin-bottom: 0.75rem;">${reportFiles.length} file${reportFiles.length === 1 ? '' : 's'}</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${reportFiles.map(fileName => `<span class="item-badge">${fileName}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="summary-box">
+                        <p style="font-size: 0.85rem; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 0.5rem;">Detected Fields</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                            ${(reportFields.length > 0 ? reportFields : ['No common fields detected']).map(field => `<span class="item-badge">${field}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
 
                 // Sync commonStudents list and update datalist
                 commonStudents = scanData.common_students || [];
-                const datalist = document.getElementById('student_names');
+                const datalist = document.getElementById('student_directory_list');
                 if (datalist) {
                     datalist.innerHTML = '';
                     commonStudents.forEach(student => {
                         const opt = document.createElement('option');
                         opt.value = student.name;
-                        opt.textContent = student.id ? `ID: ${student.id}` : '';
+                        opt.textContent = student.id ? `ID: ${student.id} (Detected in files)` : ' (Detected in files)';
                         datalist.appendChild(opt);
+                    });
+                    // Append rest of directory
+                    studentDirectory.forEach(student => {
+                        const alreadyAdded = commonStudents.some(s => s.name === student.student_name);
+                        if (!alreadyAdded) {
+                            const opt = document.createElement('option');
+                            opt.value = student.student_name || '';
+                            opt.textContent = student.student_id ? `ID: ${student.student_id}` : '';
+                            datalist.appendChild(opt);
+                        }
                     });
                 }
 
@@ -1022,10 +1219,6 @@
                     if (scanData.student.section) document.getElementById('student_section').value = scanData.student.section;
                 }
 
-                if (scanData.exam_name) {
-                    document.getElementById('exam_name').value = scanData.exam_name;
-                }
-
                 // Auto-resolve prefilled student ID to student name if present
                 const prefilledId = document.getElementById('student_id').value.trim().toLowerCase();
                 if (prefilledId) {
@@ -1033,18 +1226,6 @@
                     if (match) {
                         document.getElementById('student_name').value = match.name;
                     }
-                }
-
-                // Refresh input files list
-                try {
-                    const inputsRes = await fetch('/api/inputs');
-                    const inputsData = await inputsRes.json();
-                    if (inputsData.files) {
-                        inputFiles = inputsData.files;
-                        document.getElementById('files-container').innerHTML = inputsData.files.map(f => `<div class="file-badge">${f}</div>`).join('');
-                    }
-                } catch (e) {
-                    console.warn("Failed to refresh input files list", e);
                 }
 
                 clearInterval(scanPollInterval);
@@ -1066,38 +1247,33 @@
             }
         }
 
-        async function scanNewFiles() {
-            isScanned = false;
-            showStep(0);
-            runScanWithLoading();
-        }
-
         async function runAnalysis() {
-            const dataTypes = [];
-            document.querySelectorAll('#data-fields-container input[type="checkbox"]').forEach(cb => {
-                dataTypes.push({
-                    name: cb.getAttribute('data-field'),
-                    enabled: cb.checked,
-                    chart: "line"
-                });
-            });
+            if (selectedFiles.length < 1) {
+                document.getElementById('scan-error').style.display = 'block';
+                document.getElementById('scan-error').textContent = 'Error: upload at least 1 report file before analyzing.';
+                return;
+            }
+
+            const studentName = document.getElementById('student_name').value.trim();
+            if (!studentName) {
+                document.getElementById('scan-error').style.display = 'block';
+                document.getElementById('scan-error').textContent = 'Error: enter a student name or ID before generating the report.';
+                return;
+            }
 
             const payload = {
-                input_files: inputFiles,
+                workflow: 'student_report',
+                input_files: selectedFiles,
                 student: {
+                    query: document.getElementById('student_name').value,
                     name: document.getElementById('student_name').value,
                     id: document.getElementById('student_id').value,
                     class: document.getElementById('student_class').value,
                     section: document.getElementById('student_section').value,
                 },
-                exam_name: document.getElementById('exam_name').value,
                 output: {
                     format: document.querySelector('input[name="output_format"]:checked').value,
-                    overall_report: document.getElementById('option_overall').checked,
-                    class_avg_comparison: document.getElementById('option_class_avg').checked,
-                    trend_line: document.getElementById('option_trend').checked,
                 },
-                data_types: dataTypes,
                 extra_description: document.getElementById('extra_description').value,
             };
 
@@ -1123,14 +1299,15 @@
                     throw new Error(errData.error || 'Failed to start analysis.');
                 }
 
-                if (pollInterval) clearInterval(pollInterval);
-                pollInterval = setInterval(async () => {
+                let isPolling = true;
+                const pollStatus = async () => {
+                    if (!isPolling) return;
                     try {
                         const statusRes = await fetch('/api/status');
                         const statusData = await statusRes.json();
 
                         if (statusData.stage === 'done') {
-                            clearInterval(pollInterval);
+                            isPolling = false;
                             document.getElementById('modal-title').textContent = 'Analysis Complete';
                             document.getElementById('modal-status').textContent = statusData.message || 'Reports generated successfully.';
                             document.getElementById('modal-progress-bar').style.width = '100%';
@@ -1150,8 +1327,14 @@
                             }).join('');
                             
                             document.getElementById('modal-actions').style.display = 'block';
+                            
+                            // Auto redirect if we're not on new workflow
+                            const urlParams = new URLSearchParams(window.location.search);
+                            if (!urlParams.get('new')) {
+                                setTimeout(() => { location.href = 'history_page.html'; }, 2000);
+                            }
                         } else if (statusData.stage === 'error') {
-                            clearInterval(pollInterval);
+                            isPolling = false;
                             document.getElementById('modal-title').textContent = 'Analysis Failed';
                             document.getElementById('modal-status').textContent = statusData.message || 'An error occurred.';
                             document.getElementById('modal-spinner').style.display = 'none';
@@ -1173,9 +1356,11 @@
                             document.getElementById('modal-progress-bar').style.width = percent + '%';
                         }
                     } catch (e) {
-                        console.error('Polling status error:', e);
+                        console.warn("Poll error:", e);
                     }
-                }, 1000);
+                    if (isPolling) setTimeout(pollStatus, 1500);
+                };
+                setTimeout(pollStatus, 1500);
 
             } catch (err) {
                 console.error("Analysis submission error:", err);
@@ -1193,28 +1378,83 @@
 
         function closeModal() {
             document.getElementById('processing-modal').classList.remove('active');
-            location.reload();
+            window.location.href = '/history_page.html';
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             updateProgress();
+            renderSelectedFiles();
+
+            const fileInput = document.getElementById('report-file-input');
+            const dropzone = document.getElementById('upload-dropzone');
+            const studentNameInput = document.getElementById('student_name');
+
+            fileInput.addEventListener('change', async (event) => {
+                const files = Array.from(event.target.files);
+                if (files.length > 0) {
+                    await handleFileSelection(files);
+                }
+                fileInput.value = '';
+            });
+
+            dropzone.addEventListener('dragover', (event) => {
+                event.preventDefault();
+                dropzone.classList.add('active');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('active');
+            });
+
+            dropzone.addEventListener('drop', (event) => {
+                event.preventDefault();
+                dropzone.classList.remove('active');
+                handleFileSelection(event.dataTransfer.files);
+            });
+
+            fetch('/api/student-directory')
+                .then(r => r.json())
+                .then(data => {
+                    studentDirectory = data.students || [];
+                    const directoryDatalist = document.getElementById('student_directory_list');
+                    if (directoryDatalist) {
+                        directoryDatalist.innerHTML = '';
+                        studentDirectory.forEach(student => {
+                            const opt = document.createElement('option');
+                            opt.value = student.student_name || '';
+                            opt.textContent = student.student_id ? `ID: ${student.student_id}` : '';
+                            directoryDatalist.appendChild(opt);
+                        });
+                    }
+                })
+                .catch(() => {});
+
+            studentNameInput.addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+                
+                // 1. Check scanned students first
+                let match = commonStudents.find(s => String(s.name).trim().toLowerCase() === query);
+                if (match) {
+                    document.getElementById('student_id').value = match.id || '';
+                } else {
+                    // 2. Fallback to full directory
+                    const dirMatch = studentDirectory.find(student => {
+                        const name = String(student.student_name || '').trim().toLowerCase();
+                        const id = String(student.student_id || '').trim().toLowerCase();
+                        return query === name || query === id || query === '';
+                    });
+                    if (dirMatch && query) {
+                        document.getElementById('student_id').value = dirMatch.student_id || '';
+                    }
+                }
+                updateNextButtonState();
+            });
             
             const urlParams = new URLSearchParams(window.location.search);
-            const examNameParam = urlParams.get('exam_name');
-            if (examNameParam) {
-                document.getElementById('exam_name').value = examNameParam;
+            const studentQueryParam = urlParams.get('student_query') || urlParams.get('student_name') || urlParams.get('student_id');
+            if (studentQueryParam) {
+                studentNameInput.value = studentQueryParam;
             }
-            const studentIdParam = urlParams.get('student_id');
-            if (studentIdParam) {
-                document.getElementById('student_id').value = studentIdParam;
-            }
-
-            fetch('/api/inputs').then(r => r.json()).then(data => {
-                if (data.files) {
-                    inputFiles = data.files;
-                    document.getElementById('files-container').innerHTML = data.files.map(f => `<div class="file-badge">${f}</div>`).join('');
-                }
-            });
 
             const clientId = Math.random().toString(36).substring(2);
             function sendHeartbeat() {
@@ -1226,13 +1466,18 @@
                 if (navigator.sendBeacon) navigator.sendBeacon(`/api/heartbeat?client_id=${clientId}&closing=true`);
             });
 
-            document.getElementById('student_name').addEventListener('input', (e) => {
-                const selectedName = e.target.value.trim().toLowerCase();
-                const match = commonStudents.find(s => s.name.trim().toLowerCase() === selectedName);
-                if (match) {
-                    document.getElementById('student_id').value = match.id;
-                }
-            });
+            const urlStudentId = urlParams.get('student_id');
+            const urlStudentName = urlParams.get('student_name');
+            
+            if (urlStudentId || urlStudentName) {
+                document.getElementById('workflow_student').checked = true;
+                const classRadio = document.querySelector('input[name="workflow"][value="class"]');
+                if (classRadio) classRadio.checked = false;
+                
+                document.getElementById('student-info-section').style.display = 'block';
+                if (urlStudentId) document.getElementById('student_id').value = urlStudentId;
+                if (urlStudentName) document.getElementById('student_name').value = urlStudentName;
+            }
 
             document.getElementById('student_id').addEventListener('input', (e) => {
                 const selectedId = e.target.value.trim().toLowerCase();
@@ -1242,15 +1487,14 @@
                 }
             });
 
-            // Onboarding Intro triggers if there is no history
             fetch('/api/history')
                 .then(r => r.json())
                 .then(data => {
-                    if (!data.assignments || data.assignments.length === 0) {
+                    if (!data.has_history && !localStorage.getItem('hasSeenIntro')) {
                         showIntroModal();
                     }
                 })
-                .catch(e => console.warn("Failed to check history for onboarding:", e));
+                .catch(e => {});
         });
 
         document.querySelectorAll('.step-item').forEach((item, idx) => {

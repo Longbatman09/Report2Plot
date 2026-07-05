@@ -236,6 +236,16 @@
             color: var(--text-tertiary);
             margin-bottom: 1.5rem;
         }
+
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--bg-primary); padding: 2rem; border-radius: 12px;
+            width: 90%; max-width: 500px;
+        }
     </style>
 </head>
 <body>
@@ -255,10 +265,6 @@
                     <div class="meta-item">
                         <h4>Exam Series Group</h4>
                         <p id="exam-group-name">N/A</p>
-                    </div>
-                    <div class="meta-item">
-                        <h4>Total Students</h4>
-                        <p id="exam-student-count">N/A</p>
                     </div>
                 </div>
             </div>
@@ -287,6 +293,24 @@
                 <h2>History Record Not Found</h2>
                 <p id="error-message">Could not retrieve detail for the specified exam group.</p>
                 <a href="history_page.html" class="btn btn-secondary">Back to History List</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="add-data-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3 id="add-modal-title" style="margin-bottom: 0.5rem;">Add Consecutive Data</h3>
+            <p style="margin-bottom: 1.5rem; color: var(--text-tertiary); font-size: 0.95rem;">Upload a new test report to append to this student's timeline.</p>
+            <input type="file" id="add-file-input" accept=".pdf" multiple style="margin-bottom: 1.5rem; width: 100%;" />
+            <div id="add-modal-progress-container" style="display: none; margin-bottom: 1.5rem;">
+                <div style="font-size: 0.85rem; margin-bottom: 0.5rem;" id="add-modal-status">Processing...</div>
+                <div style="background: var(--bg-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div id="add-modal-progress-bar" style="background: var(--accent-success); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-secondary" id="add-modal-cancel">Cancel</button>
+                <button class="btn btn-primary" id="add-modal-submit">Upload & Generate</button>
             </div>
         </div>
     </div>
@@ -334,7 +358,6 @@
                 document.getElementById('exam-display-name').textContent = assignment.display_name;
                 document.getElementById('exam-date-meta').textContent = `Processed on ${formatDate(assignment.updated_at)}`;
                 document.getElementById('exam-group-name').textContent = assignment.exam_names.join(', ');
-                document.getElementById('exam-student-count').textContent = `${assignment.students.length} Student${assignment.students.length === 1 ? '' : 's'}`;
 
                 // Populate Files
                 const filesList = document.getElementById('exam-files-list');
@@ -353,9 +376,9 @@
                             <span class="student-name">${s.name || 'Unknown'}</span>
                             ${s.id ? `<span class="student-id">(${s.id})</span>` : ''}
                         </div>
-                        <a href="description_page.html?exam_name=${encodeURIComponent(assignment.exam_names[0] || '')}&student_id=${encodeURIComponent(s.id || '')}" class="btn btn-success">
+                        <button onclick="openAddDataModal('${s.id || ''}', '${s.name || ''}')" class="btn btn-success">
                             ➕ Add Consecutive Data
-                        </a>
+                        </button>
                     </div>
                 `).join('');
 
@@ -386,6 +409,111 @@
             window.addEventListener('beforeunload', () => {
                 if (navigator.sendBeacon) navigator.sendBeacon(`/api/heartbeat?client_id=${clientId}&closing=true`);
             });
+        });
+
+        let addStudentId = '';
+        let addStudentName = '';
+        let addPollInterval = null;
+
+        function openAddDataModal(studentId, studentName) {
+            addStudentId = studentId;
+            addStudentName = studentName;
+            document.getElementById('add-modal-title').textContent = `Add Data for ${studentName}`;
+            document.getElementById('add-file-input').value = '';
+            document.getElementById('add-modal-progress-container').style.display = 'none';
+            document.getElementById('add-modal-submit').style.display = 'inline-flex';
+            document.getElementById('add-data-modal').style.display = 'flex';
+        }
+
+        document.getElementById('add-modal-cancel').addEventListener('click', () => {
+            document.getElementById('add-data-modal').style.display = 'none';
+            if (addPollInterval) clearInterval(addPollInterval);
+        });
+
+        document.getElementById('add-modal-submit').addEventListener('click', async () => {
+            const fileInput = document.getElementById('add-file-input');
+            if (!fileInput.files.length) {
+                alert("Please select a file first.");
+                return;
+            }
+
+            document.getElementById('add-modal-submit').style.display = 'none';
+            document.getElementById('add-modal-progress-container').style.display = 'block';
+            document.getElementById('add-modal-status').textContent = 'Uploading file...';
+            document.getElementById('add-modal-progress-bar').style.width = '10%';
+
+            try {
+                const formData = new FormData();
+                Array.from(fileInput.files).forEach(f => formData.append('files', f, f.name));
+                
+                const uploadRes = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
+
+                document.getElementById('add-modal-status').textContent = 'Submitting job...';
+                document.getElementById('add-modal-progress-bar').style.width = '20%';
+
+                const payload = {
+                    workflow: 'student_report',
+                    input_files: uploadData.files,
+                    student: {
+                        query: addStudentName,
+                        name: addStudentName,
+                        id: addStudentId,
+                        class: '',
+                        section: ''
+                    },
+                    output: { format: 'both' },
+                    extra_description: ''
+                };
+
+                const analyzeRes = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!analyzeRes.ok) throw new Error('Analysis failed to start');
+
+                let isPolling = true;
+                const pollStatus = async () => {
+                    if (!isPolling) return;
+                    try {
+                        const statusRes = await fetch('/api/status');
+                        const statusData = await statusRes.json();
+
+                        if (statusData.stage === 'done') {
+                            isPolling = false;
+                            document.getElementById('add-modal-status').textContent = 'Done! Redirecting to history...';
+                            document.getElementById('add-modal-progress-bar').style.width = '100%';
+                            setTimeout(() => { location.href = 'history_page.html'; }, 1000);
+                            return;
+                        } else if (statusData.stage === 'error') {
+                            isPolling = false;
+                            document.getElementById('add-modal-status').textContent = 'Error: ' + statusData.message;
+                            document.getElementById('add-modal-submit').style.display = 'inline-flex';
+                            return;
+                        } else {
+                            document.getElementById('add-modal-status').textContent = statusData.message || 'Processing...';
+                            let percent = 20;
+                            if (statusData.stage === 'extracting') percent = 60;
+                            if (statusData.stage === 'rendering') percent = 90;
+                            document.getElementById('add-modal-progress-bar').style.width = percent + '%';
+                        }
+                    } catch (e) {
+                        console.warn("Poll error:", e);
+                    }
+                    setTimeout(pollStatus, 1500);
+                };
+                setTimeout(pollStatus, 1500);
+
+            } catch (err) {
+                document.getElementById('add-modal-status').textContent = 'Error: ' + err.message;
+                document.getElementById('add-modal-submit').style.display = 'inline-flex';
+            }
         });
     </script>
 </body>

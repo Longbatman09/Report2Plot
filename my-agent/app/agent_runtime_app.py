@@ -23,8 +23,10 @@ except ModuleNotFoundError:
     vertexai = None
 
 try:
+    import google.auth
+    google.auth.default()
     from vertexai.agent_engines.templates.adk import AdkApp
-except ModuleNotFoundError:
+except Exception:
     class AdkApp:  # type: ignore[override]
         def __init__(self, *args: object, **kwargs: object) -> None:
             self.app = kwargs.get("app")

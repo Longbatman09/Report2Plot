@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analysis History</title>
+    <title>Student Report History</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -323,15 +323,18 @@
     <div class="container">
         <header>
             <div class="header-content">
-                <h1>Analysis History</h1>
-                <p>Previously completed analysis reports</p>
+                <h1>Student Report History</h1>
+                <p>Previously generated per-student reports</p>
             </div>
-            <a href="description_page.html" class="btn btn-primary">New Analysis</a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="btn-clear-memory" class="btn btn-danger" style="background: #ea4335; border-color: #ea4335; color: white;">Erase Memory</button>
+                <a href="description_page.html?new=true" class="btn btn-primary">New Report</a>
+            </div>
         </header>
 
         <div id="content">
             <div class="summary-box">
-                <p class="summary-text">Loading analysis history...</p>
+                <p class="summary-text">Loading student report history...</p>
             </div>
         </div>
     </div>
@@ -355,6 +358,9 @@
             element.classList.toggle('expanded');
             element.querySelector('.expandable-panel').classList.toggle('active');
         }
+        function openFile(filePath) {
+            window.open(`/api/file?path=${encodeURIComponent(filePath)}`, '_blank');
+        }
 
         async function loadHistory() {
             try {
@@ -369,8 +375,8 @@
                     content.innerHTML = `
                         <div class="empty-state">
                             <h2>No History Yet</h2>
-                            <p>Your completed analysis reports will appear here</p>
-                            <a href="description_page.html" class="btn btn-primary" style="margin-top: 1rem;">Start First Analysis</a>
+                            <p>Your completed student reports will appear here</p>
+                            <a href="description_page.html?new=true" class="btn btn-primary" style="margin-top: 1rem;">Generate First Report</a>
                         </div>
                     `;
                     return;
@@ -379,7 +385,7 @@
                 let html = `
                     <div class="summary-box">
                         <p class="summary-text">
-                            Found <strong>${data.count}</strong> completed analysis${data.count === 1 ? '' : 'es'}.
+                            Found <strong>${data.count}</strong> completed report${data.count === 1 ? '' : 's'}.
                         </p>
                     </div>
                     <div class="history-list">
@@ -387,15 +393,19 @@
 
                 data.assignments.forEach(item => {
                     const primaryExam = item.exam_names[0] || '';
+                    const studentName = item.students.length > 0 ? item.students[0].name : 'Unknown';
+                    const clickTarget = `location.href='exam_detail_page.html?exam_name=${encodeURIComponent(primaryExam)}'`;
                     html += `
-                        <div class="history-item" onclick="location.href='exam_detail_page.html?exam_name=${encodeURIComponent(primaryExam)}'">
+                        <div class="history-item" onclick="${clickTarget}">
                             <div class="item-header">
                                 <div>
-                                    <div class="item-title">${item.display_name}</div>
+                                    <div class="item-title">
+                                        ${item.display_name}
+                                        <span style="font-size: 0.95rem; font-weight: normal; color: var(--text-secondary); margin-left: 0.5rem;">(Student: ${studentName})</span>
+                                    </div>
                                     <div style="margin-top: 0.5rem;">
                                         ${(item.exam_names || []).map(n => `<span class="item-badge">${n}</span>`).join('')}
                                         <span class="item-badge">${item.file_count} file${item.file_count === 1 ? '' : 's'}</span>
-                                        <span class="item-badge">${item.students.length} student${item.students.length === 1 ? '' : 's'}</span>
                                     </div>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 1rem;">
@@ -423,6 +433,33 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             loadHistory();
+
+            const clearBtn = document.getElementById('btn-clear-memory');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    if (confirm("Are you sure you want to erase all previously compiled memory (including cached local_mem, input files, and output reports)? This action cannot be undone.")) {
+                        clearBtn.disabled = true;
+                        clearBtn.textContent = "Erasing...";
+                        fetch('/api/clear_memory', { method: 'POST' })
+                            .then(r => r.json())
+                            .then(data => {
+                                if (data.status === "success") {
+                                    alert("Memory cleared successfully.");
+                                    window.location.href = 'description_page.html?new=true';
+                                } else {
+                                    alert("Error clearing memory: " + (data.error || "unknown error"));
+                                    clearBtn.disabled = false;
+                                    clearBtn.textContent = "Erase Memory";
+                                }
+                            })
+                            .catch(err => {
+                                alert("Failed to connect to server: " + err.message);
+                                clearBtn.disabled = false;
+                                clearBtn.textContent = "Erase Memory";
+                            });
+                    }
+                });
+            }
 
             const clientId = Math.random().toString(36).substring(2);
             function sendHeartbeat() {

@@ -1,0 +1,59 @@
+[
+  {
+    "prescan": {
+      "exam_name": "JEE MAIN WTM",
+      "test_name": "WTM 30",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B VISHAL CHANDRAKANTH",
+      "student_id": "257402707",
+      "student_class": "",
+      "student_section": "",
+      "numerical_fields": {
+        "maths": 53.0,
+        "physics": 33.0,
+        "chemistry": 42.0,
+        "total_mark": 128.0
+      },
+      "class_averages": {},
+      "source_file": "WTM 30.pdf"
+    }
+  },
+  {
+    "prescan": {
+      "exam_name": "JEE MAIN WTM",
+      "test_name": "WTM 29",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B VISHAL CHANDRAKANTH",
+      "student_id": "257402707",
+      "student_class": "",
+      "student_section": "",
+      "numerical_fields": {
+        "maths": 51.0,
+        "physics": 28.0,
+        "chemistry": 20.0,
+        "total_mark": 99.0
+      },
+      "class_averages": {},
+      "source_file": "WTM-29.pdf"
+    }
+  },
+  {
+    "prescan": {
+      "exam_name": "JEE MAIN WTM",
+      "test_name": "Unknown Test",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B VISHAL",
+      "student_id": "257402707",
+      "student_class": "",
+      "student_section": "",
+      "numerical_fields": {
+        "maths": 51
+      },
+      "class_averages": {},
+      "source_file": "WTM 30.pdf"
+    }
+  }
+]
