@@ -79,3 +79,5 @@ Report2Plot/
 - **Cloud Database**: Migrate from local JSON file caching to a cloud database like Firebase or PostgreSQL.
 - **Broader Exports**: Add support for Excel exports and analytical PDF reports.
 - **Advanced Analytics**: Class-wide trend dashboards and predictive analytics.
+
+[![CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/88x31.png)](https://creativecommons.org/licenses/by-nc/4.0/)
