@@ -147,6 +147,9 @@ def extract_for_analysis(filename: str, student_name: str, student_id: str):
             print(f"Warning: Failed to check markdown content for student presence: {e}")
 
     result = ve.extract_report_data(docling_path, student_name=student_name, student_id=student_id)
+    import os
+    result["test_name"] = os.path.splitext(os.path.basename(filename))[0]
+    result["source_file"] = filename
     lm.save_phase_3_extraction(series_name, test_folder, exam_code, student_name, student_id, result)
     print(f"[local_mem] Saved analysis for {filename} -> local_mem/{series_name}/{test_folder}/{exam_code}.json")
     return result, series_name, False
@@ -306,6 +309,8 @@ def run_student_report_pipeline(instruction_data):
             if not student_name or not student_id:
                 raise Exception("Resolved student record is missing a name or ID.")
 
+            target_exam_name = instruction_data.get("target_exam_name")
+
             extraction_results = []
             lm.ensure_local_mem_dir()
 
@@ -313,18 +318,18 @@ def run_student_report_pipeline(instruction_data):
                 set_state("extracting", idx + 1, len(files), f"Converting and extracting {filename}...")
                 docling_path = lm.get_docling_document_path(filename)
                 result = ve.extract_report_data(docling_path, student_name=student_name, student_id=student_id)
-                if result.get("exam_name") and not result.get("test_name"):
-                    result["test_name"] = result.get("exam_name", "Unknown Test")
+                import os
+                result["test_name"] = os.path.splitext(os.path.basename(filename))[0]
                 result["source_file"] = filename
                 
                 # Export automatically to the respective exam folder in Local_mem
-                series_name, test_folder, exam_code = lm.parse_report_filename(filename)
+                series_name, test_folder, exam_code = lm.parse_report_filename(filename, target_exam_name)
                 lm.save_phase_3_extraction(series_name, test_folder, exam_code, student_name, student_id, result)
                 
                 extraction_results.append(result)
 
             set_state("rendering", len(files), len(files), "Assembling per-student JSON and final report...")
-            json_path = lm.maintain_per_student_json(student_name, student_id, json.dumps(extraction_results))
+            json_path = lm.maintain_per_student_json(student_name, student_id, json.dumps(extraction_results), target_exam_name)
             report_path = lm.render_final_output(student_id, json_path)
             output_format = instruction_data.get("output", {}).get("format", "both")
 

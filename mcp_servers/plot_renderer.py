@@ -12,6 +12,7 @@ from pptx.enum.shapes import MSO_SHAPE
 import datetime
 from mcp_servers.vision_extractor import _normalize_key
 import math
+import difflib
 
 mcp = FastMCP("plot-renderer")
 OUTPUT_DIR = Path("output")
@@ -183,7 +184,13 @@ def get_data_for_field(data, dt_name):
     
     norm_query = _normalize_key(dt_name)
     
-    for r in data.get("results", []):
+    def natural_sort_key(s):
+        import re
+        return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', str(s.get("test_name", s.get("exam_name", ""))))]
+
+    sorted_results = sorted(data.get("results", []), key=natural_sort_key)
+    
+    for r in sorted_results:
         exams.append(r.get("test_name") or r.get("exam_name", "Unknown"))
         fields = r.get("numerical_fields", {})
         avgs = r.get("class_averages", {})
@@ -193,10 +200,18 @@ def get_data_for_field(data, dt_name):
         if val is None:
             val = fields.get(norm_query)
         if val is None:
+            # Exact normalized match
             for k, v in fields.items():
                 if _normalize_key(k) == norm_query:
                     val = v
                     break
+        if val is None:
+            # Fuzzy match
+            normalized_keys = { _normalize_key(k): k for k in fields.keys() }
+            matches = difflib.get_close_matches(norm_query, normalized_keys.keys(), n=1, cutoff=0.8)
+            if matches:
+                val = fields[normalized_keys[matches[0]]]
+                
         values.append(safe_float(val))
         
         # Class average extraction
@@ -208,6 +223,12 @@ def get_data_for_field(data, dt_name):
                 if _normalize_key(k) == norm_query:
                     avg_val = v
                     break
+        if avg_val is None:
+            normalized_avg_keys = { _normalize_key(k): k for k in avgs.keys() }
+            matches_avg = difflib.get_close_matches(norm_query, normalized_avg_keys.keys(), n=1, cutoff=0.8)
+            if matches_avg:
+                avg_val = avgs[normalized_avg_keys[matches_avg[0]]]
+                
         class_avg_values.append(safe_float(avg_val))
         
     return exams, values, class_avg_values

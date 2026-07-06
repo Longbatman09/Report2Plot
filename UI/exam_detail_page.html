@@ -333,6 +333,7 @@
         async function loadExamDetail() {
             const urlParams = new URLSearchParams(window.location.search);
             const targetExamName = urlParams.get('exam_name');
+            currentExamName = targetExamName;
 
             if (!targetExamName) {
                 showError("No exam series specified in the URL.");
@@ -411,8 +412,9 @@
             });
         });
 
-        let addStudentId = '';
         let addStudentName = '';
+        let addStudentId = '';
+        let currentExamName = '';
         let addPollInterval = null;
 
         function openAddDataModal(studentId, studentName) {
@@ -459,6 +461,7 @@
                 const payload = {
                     workflow: 'student_report',
                     input_files: uploadData.files,
+                    target_exam_name: currentExamName,
                     student: {
                         query: addStudentName,
                         name: addStudentName,
@@ -487,9 +490,9 @@
 
                         if (statusData.stage === 'done') {
                             isPolling = false;
-                            document.getElementById('add-modal-status').textContent = 'Done! Redirecting to history...';
+                            document.getElementById('add-modal-status').textContent = 'Done! Reloading...';
                             document.getElementById('add-modal-progress-bar').style.width = '100%';
-                            setTimeout(() => { location.href = 'history_page.html'; }, 1000);
+                            setTimeout(() => { location.reload(); }, 1000);
                             return;
                         } else if (statusData.stage === 'error') {
                             isPolling = false;

@@ -1,7 +1,7 @@
 {
   "prescan": {
     "exam_name": "JEE MAIN WTM",
-    "test_name": "WTM-29",
+    "test_name": "WTM 31",
     "data_mode": "grouped",
     "found_student": true,
     "student_name": "B VISHAL CHANDRAKANTH",
@@ -9,10 +9,10 @@
     "student_class": "",
     "student_section": "",
     "numerical_fields": {
-      "maths": 51.0,
-      "physics": 28.0,
+      "maths": 47.0,
+      "physics": 65.0,
       "chemistry": 20.0,
-      "total_marks": 99.0
+      "total_marks": 132.0
     },
     "class_averages": {}
   }

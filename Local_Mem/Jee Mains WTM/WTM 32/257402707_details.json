@@ -1,7 +1,7 @@
 [
   {
     "prescan": {
-      "exam_name": "JEE MAIN WTM",
+      "exam_name": "JEE-MAIN WTM",
       "test_name": "WTM 30",
       "data_mode": "grouped",
       "found_student": true,
@@ -10,7 +10,7 @@
       "student_class": "",
       "student_section": "",
       "numerical_fields": {
-        "maths": 53.0,
+        "mathematics_marks": 53.0,
         "physics": 33.0,
         "chemistry": 42.0,
         "total_mark": 128.0
@@ -21,8 +21,48 @@
   },
   {
     "prescan": {
+      "exam_name": "Jee Mains WTM",
+      "test_name": "WTM 31",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B VISHAL CHANDRAKANTH",
+      "student_id": "257402707",
+      "student_class": "",
+      "student_section": "",
+      "numerical_fields": {
+        "maths": 47.0,
+        "physics": 65.0,
+        "chemistry": 20.0,
+        "total_mark": 132.0
+      },
+      "class_averages": {},
+      "source_file": "WTM 31.pdf"
+    }
+  },
+  {
+    "prescan": {
+      "exam_name": "Jee Mains WTM",
+      "test_name": "WTM 32",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B VISHAL CHANDRAKANTH",
+      "student_id": "257402707",
+      "student_class": "",
+      "student_section": "",
+      "numerical_fields": {
+        "maths": 56.0,
+        "physics": 47.0,
+        "chemistry": 37.0,
+        "total_mark": 140.0
+      },
+      "class_averages": {},
+      "source_file": "WTM 32.pdf"
+    }
+  },
+  {
+    "prescan": {
       "exam_name": "JEE MAIN WTM",
-      "test_name": "WTM 29",
+      "test_name": "WTM-29",
       "data_mode": "grouped",
       "found_student": true,
       "student_name": "B VISHAL CHANDRAKANTH",
@@ -37,23 +77,6 @@
       },
       "class_averages": {},
       "source_file": "WTM-29.pdf"
-    }
-  },
-  {
-    "prescan": {
-      "exam_name": "JEE MAIN WTM",
-      "test_name": "Unknown Test",
-      "data_mode": "grouped",
-      "found_student": true,
-      "student_name": "B VISHAL",
-      "student_id": "257402707",
-      "student_class": "",
-      "student_section": "",
-      "numerical_fields": {
-        "maths": 51
-      },
-      "class_averages": {},
-      "source_file": "WTM 30.pdf"
     }
   }
 ]

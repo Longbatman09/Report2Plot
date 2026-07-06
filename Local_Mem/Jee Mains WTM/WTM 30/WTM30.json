@@ -1,6 +1,6 @@
 {
   "prescan": {
-    "exam_name": "JEE MAIN WTM",
+    "exam_name": "JEE-MAIN WTM",
     "test_name": "WTM 30",
     "data_mode": "grouped",
     "found_student": true,
@@ -9,10 +9,10 @@
     "student_class": "",
     "student_section": "",
     "numerical_fields": {
-      "maths": 53.0,
+      "mathematics_marks": 53.0,
       "physics": 33.0,
       "chemistry": 42.0,
-      "total_mark": 128.0
+      "total_marks": 128.0
     },
     "class_averages": {}
   }

@@ -177,7 +177,7 @@ def normalize_numeric_fields(fields: dict | list) -> dict:
     return normalized
 
 
-def maintain_per_student_json(student_name: str, student_id: str, list_of_extractions_json: str) -> str:
+def maintain_per_student_json(student_name: str, student_id: str, list_of_extractions_json: str, target_exam_name: str = None) -> str:
     try:
         extractions = json.loads(list_of_extractions_json)
     except Exception as e:
@@ -215,7 +215,7 @@ def maintain_per_student_json(student_name: str, student_id: str, list_of_extrac
         standardized_num_fields = normalize_numeric_fields(item.get("numerical_fields", {}))
         standardized_class_avgs = normalize_numeric_fields(item.get("class_averages", {}))
 
-        exam_name = item.get("exam_name", "JEE MAIN WTM")
+        exam_name = target_exam_name if target_exam_name else item.get("exam_name", "JEE MAIN WTM")
         test_name = item.get("test_name", "Unknown Test")
         source_file = item.get("source_file")
         if source_file:
@@ -244,12 +244,20 @@ def maintain_per_student_json(student_name: str, student_id: str, list_of_extrac
 
     final_list = list(merged.values())
 
+    def natural_sort_key(item):
+        import re
+        prescan = item.get("prescan", {})
+        test_name = str(prescan.get("test_name", prescan.get("exam_name", "")))
+        return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', test_name)]
+
+    final_list = sorted(final_list, key=natural_sort_key)
+
     # Determine respective exam folder
     if last_source_file:
-        series_name, test_folder, _ = parse_report_filename(last_source_file)
+        series_name, test_folder, _ = parse_report_filename(last_source_file, target_exam_name)
         target_dir = LOCAL_MEM_DIR / series_name / test_folder
     else:
-        target_dir = LOCAL_MEM_DIR / "Other"
+        target_dir = LOCAL_MEM_DIR / (target_exam_name if target_exam_name else "Other")
         
     target_dir.mkdir(parents=True, exist_ok=True)
     json_path = target_dir / f"{student_id}_details.json"
@@ -301,6 +309,14 @@ def render_final_output(student_id: str, provided_json_path: str = None) -> str:
     lines.append("")
     lines.append("## Test Performance History")
     lines.append("")
+
+    def natural_sort_key(item):
+        import re
+        prescan = item.get("prescan", {})
+        test_name = str(prescan.get("test_name", prescan.get("exam_name", "")))
+        return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', test_name)]
+
+    data = sorted(data, key=natural_sort_key)
 
     for idx, item in enumerate(data):
         prescan = item.get("prescan", {})
@@ -391,15 +407,18 @@ def get_series_and_test_from_assignment(assignment_test: str) -> tuple[str, str,
     return series_name, test_folder, exam_code
 
 
-def parse_report_filename(filename: str) -> tuple[str, str, str]:
+def parse_report_filename(filename: str, target_exam_name: str = None) -> tuple[str, str, str]:
     """
     Parses a report filename and returns a tuple of (series_name, test_folder_name, exam_code).
-    Example:
-    '06-06-2026_SR C 120 (INCOMING)_Jee-Main_WTM-29_INTERNAL ANALYSIS.pdf'
-    -> ('Jee Mains WTM', 'WTM 29', 'WTM29')
     """
+    if not filename:
+        return target_exam_name or "Other", "Unknown", "unknown"
+        
     slug = detect_assignment_test(filename)
-    return get_series_and_test_from_assignment(slug)
+    series, test, code = get_series_and_test_from_assignment(slug)
+    if target_exam_name:
+        series = target_exam_name
+    return series, test, code
 
 
 def detect_assignment_test(filename: str, exam_name: str | None = None) -> str:

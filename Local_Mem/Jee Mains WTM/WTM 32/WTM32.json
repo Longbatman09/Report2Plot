@@ -1,7 +1,7 @@
 {
   "prescan": {
-    "exam_name": "JEE MAIN WTM",
-    "test_name": "WTM-29",
+    "exam_name": "Sri Chaitanya IIT Regional",
+    "test_name": "WTM 32",
     "data_mode": "grouped",
     "found_student": true,
     "student_name": "B VISHAL CHANDRAKANTH",
@@ -9,10 +9,10 @@
     "student_class": "",
     "student_section": "",
     "numerical_fields": {
-      "maths": 51.0,
-      "physics": 28.0,
-      "chemistry": 20.0,
-      "total_marks": 99.0
+      "maths": 56.0,
+      "physics": 47.0,
+      "chemistry": 37.0,
+      "total_mark": 140.0
     },
     "class_averages": {}
   }
