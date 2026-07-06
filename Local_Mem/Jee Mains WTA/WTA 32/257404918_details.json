@@ -1,0 +1,64 @@
+[
+  {
+    "prescan": {
+      "exam_name": "JEE(Adv)/WTA",
+      "test_name": "WTA-24",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B ARUN PRITHVHI",
+      "student_id": "257404918",
+      "student_class": "",
+      "student_section": "",
+      "numerical_fields": {
+        "total_mark": 59.0,
+        "maths": 22.0,
+        "physics": 14.0,
+        "chemistry": 23.0,
+        "air_rank": 1060.0
+      },
+      "class_averages": {},
+      "source_file": "WTA-24.pdf"
+    }
+  },
+  {
+    "prescan": {
+      "exam_name": "JEE(Adv)/WTA",
+      "test_name": "WTA-30",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B ARUN PRITHVHI",
+      "student_id": "257404918",
+      "student_class": "12",
+      "student_section": "",
+      "numerical_fields": {
+        "total_mark": 66.0,
+        "maths": 28.0,
+        "physics": 23.0,
+        "chemistry": 15.0
+      },
+      "class_averages": {},
+      "source_file": "WTA-30.pdf"
+    }
+  },
+  {
+    "prescan": {
+      "exam_name": "JEE(Adv)/WTA",
+      "test_name": "WTA-32",
+      "data_mode": "grouped",
+      "found_student": true,
+      "student_name": "B ARUN PRITHVHI",
+      "student_id": "257404918",
+      "student_class": "Sr Secondary",
+      "student_section": "Nolambur",
+      "numerical_fields": {
+        "total_mark": 31.0,
+        "maths": 16.7,
+        "physics": 0.0,
+        "chemistry": 35.0,
+        "air_rank": 2050.0
+      },
+      "class_averages": {},
+      "source_file": "WTA-32.pdf"
+    }
+  }
+]

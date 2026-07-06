@@ -1,0 +1,20 @@
+{
+  "prescan": {
+    "exam_name": "JEE(Adv)/WTA",
+    "test_name": "WTA-32",
+    "data_mode": "grouped",
+    "found_student": true,
+    "student_name": "B ARUN PRITHVHI",
+    "student_id": "257404918",
+    "student_class": "Sr Secondary",
+    "student_section": "Nolambur",
+    "numerical_fields": {
+      "total_mark": 31.0,
+      "maths": 16.7,
+      "physics": 0.0,
+      "chemistry": 35.0,
+      "air_rank": 2050.0
+    },
+    "class_averages": {}
+  }
+}

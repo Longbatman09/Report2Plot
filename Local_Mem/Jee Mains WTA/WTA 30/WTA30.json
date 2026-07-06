@@ -1,0 +1,19 @@
+{
+  "prescan": {
+    "exam_name": "JEE(Adv)/WTA",
+    "test_name": "WTA-30",
+    "data_mode": "grouped",
+    "found_student": true,
+    "student_name": "B ARUN PRITHVHI",
+    "student_id": "257404918",
+    "student_class": "12",
+    "student_section": "",
+    "numerical_fields": {
+      "total_mark": 66.0,
+      "maths": 28.0,
+      "physics": 23.0,
+      "chemistry": 15.0
+    },
+    "class_averages": {}
+  }
+}

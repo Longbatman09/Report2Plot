@@ -283,6 +283,10 @@ def render_matplotlib(data: dict, instruction_path: str) -> dict:
         if not exams_list:
             continue
             
+        if all(v == 0.0 for v in values) and (not class_avg_comparison or all(av == 0.0 for av in class_avg_values)):
+            print(f"Skipping chart for {dt_name} due to continuous zero values.")
+            continue
+            
         exams = exams_list # cache exams axis
         
         # Add to summary if it's a typical subject score (e.g. out of 100) and not class rank/total mark
@@ -413,6 +417,9 @@ def render_pptx(data: dict, instruction_path: str) -> dict:
         
         exams, values, class_avg_values = get_data_for_field(data, dt_name)
         if not exams:
+            continue
+            
+        if all(v == 0.0 for v in values) and (not class_avg_comparison or all(av == 0.0 for av in class_avg_values)):
             continue
             
         slide = prs.slides.add_slide(prs.slide_layouts[6])
