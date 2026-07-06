@@ -1,4 +1,4 @@
-# Report2Plot (Report2Statistics)
+# Report2Plot (R2P)
 
 An automated, AI-powered tool that extracts student marks from unstructured report files (like PDFs and images) to generate analytical charts and presentation-ready PowerPoint decks.
 
