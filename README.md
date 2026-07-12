@@ -6,6 +6,11 @@ An automated, AI-powered tool that extracts student marks from unstructured repo
 
 Extracting marks and performance data manually from unstructured student reports is time-consuming and prone to human error. Report2Plot solves this by providing a fully automated workflow. It uses **Google Gemini** and **Docling** for intelligent data extraction and **Model Context Protocol (MCP)** servers to manage modular processing tasks like charting and rendering. 
 
+## 5-Minutes Description Video
+
+[![Report 2 Plot (R2P) For capstone project by B.Vishal Chandrakanth](https://img.youtube.com/vi/oKPRnc3AtrU/hqdefault.jpg)](http://www.youtube.com/watch?v=oKPRnc3AtrU "Report 2 Plot (R2P) For capstone project by B.Vishal Chandrakanth")
+
+
 ### Key Features
 - **Automated Data Extraction**: Convert unstructured PDFs/images to structured data using Docling and Google Gemini Vision.
 - **Intelligent Caching (`Local_Mem`)**: Bypasses redundant API calls for previously processed reports, drastically reducing API costs and latency.
