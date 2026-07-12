@@ -9,7 +9,7 @@ Extracting marks and performance data manually from unstructured student reports
 ## 5-Minutes Description Video
 
 [![Report 2 Plot (R2P) For capstone project by B.Vishal Chandrakanth](https://img.youtube.com/vi/oKPRnc3AtrU/hqdefault.jpg)](http://www.youtube.com/watch?v=oKPRnc3AtrU "Report 2 Plot (R2P) For capstone project by B.Vishal Chandrakanth")
-
+(click to watch)
 
 ### Key Features
 - **Automated Data Extraction**: Convert unstructured PDFs/images to structured data using Docling and Google Gemini Vision.
@@ -21,6 +21,8 @@ Extracting marks and performance data manually from unstructured student reports
 - **Modular Architecture**: Built on the Model Context Protocol (MCP) using `fastmcp`.
 
 ##  Project Structure
+
+![Alt text](https://github.com/Longbatman09/Report2Plot/blob/5994b9aa8cea82d4cb792f42aa18f3127aa8eff8/Workflow.png)
 
 ```text
 Report2Plot/
